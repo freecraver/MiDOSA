@@ -1,3 +1,4 @@
 .idea/
 res/.ipynb_checkpoints/
 res/flights.csv
+res/edges.json

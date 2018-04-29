@@ -1,10 +1,15 @@
-const nodes_file = "res/nodes.json" ;//json-file with ID-column
+const nodes_file = "res/nodes.json";
+const edges_file = "res/edges.json";//json-file with ID-column
 
 let detailGraph;
 let rawNodes;
+let rawEdges;
 let x_axis = "LATITUDE";
 let y_axis = "LONGITUDE";
-let id_col = "IATA_CODE";
+let node_id_col = "IATA_CODE";
+let source_node_col = "ORIGIN_AIRPORT";
+let target_node_col = "DESTINATION_AIRPORT";
+let edge_id_col = "EDGE_ID";
 let sigInst;
 const DETAIL_MIN_VAL = 0; //for scaling
 const DETAIL_MAX_VAL = 1000; //for scaling
@@ -54,6 +59,23 @@ function getScaled(value, scalingVals, scalingAxis="X") {
     return DETAIL_MIN_VAL + (DETAIL_MAX_VAL-DETAIL_MIN_VAL)/(scalingVals.max - scalingVals.min) *(value-scalingVals.min);
 }
 
+function readEdges() {
+    console.log("in");
+    $.getJSON(edges_file, function(json) {
+        rawEdges = json; //load data
+
+        rawEdges.forEach(function(rawEdge){
+            rawEdge.id = rawEdge[edge_id_col];
+            rawEdge.source = rawEdge[source_node_col];
+            rawEdge.target = rawEdge[target_node_col];
+            console.log(rawEdge);
+            detailGraph.addEdge(rawEdge);
+        });
+
+        sigInst.refresh();
+    });
+}
+
 $(function() {
 
     // create new sigma instance
@@ -66,6 +88,7 @@ $(function() {
     });
     detailGraph = sigInst.graph;
 
+    // read nodes
     $.getJSON(nodes_file, function(json) {
         rawNodes = json; //load data
         let scalingArr = getScalingParams(rawNodes);
@@ -73,12 +96,12 @@ $(function() {
         rawNodes.forEach(function(rawNode){
             rawNode.x = getScaled(rawNode[x_axis], scalingArr.x, "X");
             rawNode.y = getScaled(rawNode[y_axis], scalingArr.y, "Y");
-            rawNode.id = rawNode[id_col].toString();
+            rawNode.id = rawNode[node_id_col].toString();
             rawNode.size = 0.1;
-            console.log(rawNode);
             detailGraph.addNode(rawNode);
         });
 
         sigInst.refresh();
+        readEdges();
     });
 });
