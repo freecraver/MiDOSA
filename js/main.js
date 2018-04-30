@@ -60,19 +60,19 @@ function getScaled(value, scalingVals, scalingAxis="X") {
 }
 
 function readEdges() {
-    console.log("in");
-    $.getJSON(edges_file, function(json) {
-        rawEdges = json; //load data
-
-        rawEdges.forEach(function(rawEdge){
-            rawEdge.id = rawEdge[edge_id_col];
-            rawEdge.source = rawEdge[source_node_col];
-            rawEdge.target = rawEdge[target_node_col];
-            console.log(rawEdge);
-            detailGraph.addEdge(rawEdge);
-        });
-
-        sigInst.refresh();
+    rawEdges = [];
+    let edgeCnt = 0;
+    oboe(edges_file)
+        .node("!.*", function(edge) {
+            edge.id = edge[edge_id_col];
+            edge.source = edge[source_node_col];
+            edge.target = edge[target_node_col];
+            rawEdges.push(edge);
+            detailGraph.addEdge(edge);
+            if (edgeCnt++ % 100 == 0){
+                sigInst.refresh();
+            }
+            return oboe.drop;
     });
 }
 
@@ -83,25 +83,28 @@ $(function() {
         container:document.getElementById('detail_graph_container'),
         settings: {
             minNodeSize: 0.1,
-            maxNodeSize: 1
+            maxNodeSize: 1,
+            defaultEdgeType: 'curve'
         }
     });
     detailGraph = sigInst.graph;
 
-    // read nodes
-    $.getJSON(nodes_file, function(json) {
-        rawNodes = json; //load data
-        let scalingArr = getScalingParams(rawNodes);
+    // read nodes using oboe streaming
+    oboe(nodes_file)
+        .done(function(json){
+            rawNodes = json; //load data
+            let scalingArr = getScalingParams(rawNodes);
 
-        rawNodes.forEach(function(rawNode){
-            rawNode.x = getScaled(rawNode[x_axis], scalingArr.x, "X");
-            rawNode.y = getScaled(rawNode[y_axis], scalingArr.y, "Y");
-            rawNode.id = rawNode[node_id_col].toString();
-            rawNode.size = 0.1;
-            detailGraph.addNode(rawNode);
+            rawNodes.forEach(function(rawNode){
+                rawNode.x = getScaled(rawNode[x_axis], scalingArr.x, "X");
+                rawNode.y = getScaled(rawNode[y_axis], scalingArr.y, "Y");
+                rawNode.id = rawNode[node_id_col].toString();
+                rawNode.size = 0.1;
+                detailGraph.addNode(rawNode);
+            });
+
+            sigInst.refresh();
+            readEdges();
         });
 
-        sigInst.refresh();
-        readEdges();
-    });
 });
