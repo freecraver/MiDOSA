@@ -62,6 +62,8 @@ function getScaled(value, scalingVals, scalingAxis="X") {
 function readEdges() {
     rawEdges = [];
     let edgeCnt = 0;
+
+    $("#detail_progress").css("visibility", "visible");
     oboe(edges_file)
         .node("!.*", function(edge) {
             edge.id = edge[edge_id_col];
@@ -69,21 +71,27 @@ function readEdges() {
             edge.target = edge[target_node_col];
             rawEdges.push(edge);
             detailGraph.addEdge(edge);
-            if (edgeCnt++ % 100 == 0){
-                sigInst.refresh();
+            if (edgeCnt++ % 987 == 0){
+                $("#detail_progress").text("Loaded " + edgeCnt + " edges...");
             }
             return oboe.drop;
-    });
+    })
+        .done(function(json){
+            $("#detail_progress").remove();
+            sigInst.refresh();
+        });
 }
 
 $(function() {
 
     // create new sigma instance
+    // at startup do not show edges do prevent cluttering
     sigInst = new sigma({
         container:document.getElementById('detail_graph_container'),
         settings: {
             minNodeSize: 0.1,
             maxNodeSize: 1,
+            drawEdges: false,
             defaultEdgeType: 'curve'
         }
     });
@@ -107,4 +115,13 @@ $(function() {
             readEdges();
         });
 
+    // hide/show detail view on collapse click (fix for sigma.js)
+    $(".detail_panel .collapse-link").click(function(){ $("#detail_graph_container").toggle();});
+
+    // hide/show edges on eye click
+    $(".detail_panel  .edge_toggle").click(function() {
+        $(".detail_panel  .edge_toggle > i").toggleClass('fa-eye fa-eye-slash');
+        sigInst.settings("drawEdges", !sigInst.settings("drawEdges")); //toggle
+        sigInst.refresh();
+    })
 });
