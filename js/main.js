@@ -1,7 +1,10 @@
+"use strict";
+
 const nodes_file = "res/nodes.json";
 const edges_file = "res/edges.json";//json-file with ID-column
 
 let detailGraph;
+let selectionCanvas;
 let rawNodes;
 let rawEdges;
 let x_axis = "LATITUDE";
@@ -82,6 +85,38 @@ function readEdges() {
         });
 }
 
+function initDetailSelectionCanvas() {
+    let $SIGMA_SCENE = $("#detail_graph_container .sigma-scene");
+
+    // create new selection canvas
+    let copyCanvas = document.createElement("canvas");
+    copyCanvas.id = "selection_canvas";
+    copyCanvas.width = $SIGMA_SCENE.width();
+    copyCanvas.height = $SIGMA_SCENE.height();
+    $SIGMA_SCENE.parent()[0].appendChild(copyCanvas);
+    
+    selectionCanvas = new fabric.Canvas("selection_canvas");
+    //set background to transparent to allow rendering of other layers
+    selectionCanvas.setBackgroundColor(null);
+
+    // create a rectangle object
+    var rect = new fabric.Rect({
+        left: 100,
+        top: 100,
+        fill: 'transparent',
+        stroke: 'red',
+        opacity: 0.75,
+        hasRotatingPoint: false,
+        width: 200,
+        height: 100,
+        cornerSize: 5,
+        transparentCorners: true
+    });
+
+// "add" rectangle onto canvas
+    selectionCanvas.add(rect);
+}
+
 $(function() {
     // create new sigma instance
     // at startup do not show edges do prevent cluttering
@@ -117,6 +152,7 @@ $(function() {
 
             sigInst.refresh();
             readEdges();
+            initDetailSelectionCanvas();
         });
 
     // hide/show detail view on collapse click (fix for sigma.js)
