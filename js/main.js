@@ -168,24 +168,44 @@ $(function() {
 
     // add new selection box on click
     $(".detail_panel .add_selection").click(addSelection);
+
+    // key binder
+    $(document).keydown(function(e) {
+        switch(e.which) {
+            case 46: // remove
+                removeActiveSelection();
+                break;
+            default: return;
+        }
+        e.preventDefault(); // prevent the default action (scroll / move caret)
+    });
 });
 
 
+/**
+ * adds a new selection box
+ */
 function addSelection() {
 
     let selectionCnt = selectionBoxArr.length;
     let rgbVals = colorPool[selectionCnt % colorPool.length];
 
+    // set initial size relative to current zoom
+    let sizeFactor = sigInst.camera.ratio;
+
+    // position new elements within current view
+    let positionOffset= selectionCanvas.calcViewportBoundaries().tl;
+
     // create a rectangle object
     let rect = new fabric.Rect({
-        left: 10,
-        top: 10,
+        left:  positionOffset.x + 150 * sizeFactor,
+        top: positionOffset.y + 150 * sizeFactor,
         fill: 'transparent',
         stroke: "rgb("+ rgbVals[0] + "," + rgbVals[1] + "," + rgbVals[2] + ")",
         opacity: 0.75,
         hasRotatingPoint: false,
-        width: 20,
-        height: 10,
+        width: 200 * sizeFactor,
+        height: 100 * sizeFactor,
         cornerSize: 5,
         transparentCorners: true
     });
@@ -193,6 +213,22 @@ function addSelection() {
 // "add" rectangle onto canvas
     selectionCanvas.add(rect);
     selectionBoxArr.push(rect);
+}
+
+/**
+ * removes the currently selected box in the detail view
+ * does nothing if no box is selected
+ */
+function removeActiveSelection() {
+    let activeRectangle = selectionCanvas.getActiveObject();
+
+    if (activeRectangle != null) {
+        let idx = selectionBoxArr.indexOf(activeRectangle);
+        if (idx > -1) {
+            selectionBoxArr.splice(idx, 1);
+        }
+        selectionCanvas.remove(activeRectangle);
+    }
 }
 
 /**
