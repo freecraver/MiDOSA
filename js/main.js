@@ -15,6 +15,7 @@ let target_node_col = "DESTINATION_AIRPORT";
 let edge_id_col = "EDGE_ID";
 let sigInst;
 let selectionBoxArr = [];
+let filterArr = [];
 const DETAIL_MIN_VAL = 0; //for scaling
 const DETAIL_MAX_VAL = 1000; //for scaling
 
@@ -28,6 +29,16 @@ const colorPool = [[188,179,66],
     [200,129,67],
     [196,92,119],
     [118,125,56]];
+
+class Filter {
+    constructor(filterArr, markingColor){
+        this.entryMap = new Map();
+        this.markingColor = markingColor;
+        filterArr.forEach(function(el){
+            this.entryMap.set(el.feature, el.boundary);
+        }, this);
+    }
+};
 
 /**
  * Calculates min/max values for x/y axis
@@ -228,6 +239,7 @@ function addSelection() {
 
     let selectionCnt = selectionBoxArr.length;
     let rgbVals = colorPool[selectionCnt % colorPool.length];
+    let colorStr = "rgb("+ rgbVals[0] + "," + rgbVals[1] + "," + rgbVals[2] + ")";
 
     // set initial size relative to current zoom
     let sizeFactor = sigInst.camera.ratio;
@@ -240,7 +252,7 @@ function addSelection() {
         left:  positionOffset.x + 150 * sizeFactor,
         top: positionOffset.y + 150 * sizeFactor,
         fill: 'transparent',
-        stroke: "rgb("+ rgbVals[0] + "," + rgbVals[1] + "," + rgbVals[2] + ")",
+        stroke: colorStr,
         opacity: 0.75,
         hasRotatingPoint: false,
         width: 200 * sizeFactor,
@@ -249,9 +261,16 @@ function addSelection() {
         transparentCorners: true
     });
 
+    let filter = new Filter([
+        {feature:x_axis, boundary:{min: rect.left, max:rect.left+rect.width}},
+        {feature:y_axis, boundary:{min: rect.top, max:rect.top+rect.height}},
+    ],
+        colorStr);
+
 // "add" rectangle onto canvas
     selectionCanvas.add(rect);
     selectionBoxArr.push(rect);
+    filterArr.push(filter);
 }
 
 /**
@@ -268,6 +287,10 @@ function removeActiveSelection() {
         }
         selectionCanvas.remove(activeRectangle);
     }
+}
+
+function getBoxes() {
+    let curNodes = sigInst.camera.quadtree.area({x1:0,x2:400, y1:0, y2:400, height:400});
 }
 
 /**
