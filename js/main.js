@@ -14,8 +14,20 @@ let source_node_col = "ORIGIN_AIRPORT";
 let target_node_col = "DESTINATION_AIRPORT";
 let edge_id_col = "EDGE_ID";
 let sigInst;
+let selectionBoxArr = [];
 const DETAIL_MIN_VAL = 0; //for scaling
 const DETAIL_MAX_VAL = 1000; //for scaling
+
+const colorPool = [[188,179,66],
+    [132,98,202],
+    [96,175,75],
+    [201,97,177],
+    [75,176,146],
+    [205,73,59],
+    [104,140,205],
+    [200,129,67],
+    [196,92,119],
+    [118,125,56]];
 
 /**
  * Calculates min/max values for x/y axis
@@ -94,27 +106,15 @@ function initDetailSelectionCanvas() {
     copyCanvas.width = $SIGMA_SCENE.width();
     copyCanvas.height = $SIGMA_SCENE.height();
     $SIGMA_SCENE.parent()[0].appendChild(copyCanvas);
-    
+
     selectionCanvas = new fabric.Canvas("selection_canvas");
     //set background to transparent to allow rendering of other layers
     selectionCanvas.setBackgroundColor(null);
 
-    // create a rectangle object
-    var rect = new fabric.Rect({
-        left: 100,
-        top: 100,
-        fill: 'transparent',
-        stroke: 'red',
-        opacity: 0.75,
-        hasRotatingPoint: false,
-        width: 200,
-        height: 100,
-        cornerSize: 5,
-        transparentCorners: true
+    $("#detail_graph_container .canvas-container").on('mousewheel DOMMouseScroll', function (event) {
+        wheelHandler(event);
     });
 
-// "add" rectangle onto canvas
-    selectionCanvas.add(rect);
 }
 
 $(function() {
@@ -132,6 +132,7 @@ $(function() {
             maxNodeSize: 1,
             drawEdges: false,
             minArrowSize: 4,
+            zoomMin: 0.1
         }
     });
     detailGraph = sigInst.graph;
@@ -163,8 +164,36 @@ $(function() {
         $(".detail_panel  .edge_toggle > i").toggleClass('fa-eye fa-eye-slash');
         sigInst.settings("drawEdges", !sigInst.settings("drawEdges")); //toggle
         sigInst.refresh();
-    })
+    });
+
+    // add new selection box on click
+    $(".detail_panel .add_selection").click(addSelection);
 });
+
+
+function addSelection() {
+
+    let selectionCnt = selectionBoxArr.length;
+    let rgbVals = colorPool[selectionCnt % colorPool.length];
+
+    // create a rectangle object
+    let rect = new fabric.Rect({
+        left: 10,
+        top: 10,
+        fill: 'transparent',
+        stroke: "rgb("+ rgbVals[0] + "," + rgbVals[1] + "," + rgbVals[2] + ")",
+        opacity: 0.75,
+        hasRotatingPoint: false,
+        width: 20,
+        height: 10,
+        cornerSize: 5,
+        transparentCorners: true
+    });
+
+// "add" rectangle onto canvas
+    selectionCanvas.add(rect);
+    selectionBoxArr.push(rect);
+}
 
 /**
  * This edge renderer will display edges as curves with arrow heading.
@@ -249,3 +278,81 @@ sigma.canvas.edges.curvedArrow =
         context.closePath();
         context.fill();
     };
+
+
+/**
+ * The handler listening to the 'wheel' mouse event. It will basically zoom
+ * in or not into the graph.
+ *
+ * @param {event} ev A propagated event.
+ */
+function wheelHandler(ev) {
+    let e = ev.originalEvent;
+
+    let pos,
+        ratio,
+        animation,
+        wheelDelta = sigma.utils.getDelta(e);
+
+    let settings = sigInst.settings;
+    let camera = sigInst.camera;
+    let canvas = selectionCanvas;
+
+    if (settings('mouseEnabled') && settings('mouseWheelEnabled') && wheelDelta !== 0) {
+        ratio = wheelDelta > 0 ?
+            1 / settings('zoomingRatio'):
+            settings('zoomingRatio');
+
+        // this seems to break zooming to anchor, as the supplied x/y positions are wrong
+        // TODO: find error cause if fix is desired
+        /*pos = camera.cameraPosition(
+            sigma.utils.getX(e) - sigma.utils.getCenter(e).x,
+            sigma.utils.getY(e) - sigma.utils.getCenter(e).y,
+            false
+        );*/
+
+        animation = {
+            duration: settings('mouseZoomDuration')
+        };
+
+        let canvasZoom = translateZoom(ratio);
+
+        // hide fabric canvas while sigma is smoothly zooming
+        $('#selection_canvas').hide();
+        setTimeout(function() {
+            $('#selection_canvas').show();
+        }, settings('mouseZoomDuration'));
+
+        //sigma.utils.zoomTo(camera, pos.x, pos.y, ratio, animation);
+        sigma.utils.zoomTo(camera, 0, 0, ratio, animation);
+        canvas.zoomToPoint({ x: canvas.width / 2, y: canvas.height/2}, canvasZoom);
+
+        if (e.preventDefault)
+            e.preventDefault();
+        else
+            e.returnValue = false;
+
+        e.stopPropagation();
+        return false;
+    }
+}
+
+/**
+ * converts sigma-zoom ratio to fabric-zoom ratio
+ * @param ratio
+ * @returns {number}
+ */
+function translateZoom(ratio) {
+    let settings = sigInst.settings;
+    let camera = sigInst.camera;
+
+    let newRatio = Math.max(
+        settings('zoomMin'),
+        Math.min(
+            settings('zoomMax'),
+            camera.ratio * ratio
+        )
+    );
+
+    return 1/newRatio;
+}
