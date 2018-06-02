@@ -112,7 +112,46 @@ function initDetailSelectionCanvas() {
     selectionCanvas.setBackgroundColor(null);
 
     $("#detail_graph_container .canvas-container").on('mousewheel DOMMouseScroll', function (event) {
-        wheelHandler(event);
+        wheelHandler(event, sigInst, selectionCanvas);
+    });
+
+    selectionCanvas.on('mouse:down', function(opt) {
+        var evt = opt.e;
+        // if no object is selected we try to pan both canvas
+        if (selectionCanvas.getActiveObject() == null) {
+            this.isDragging = true;
+            this.selection = false;
+            this.lastPosX = evt.clientX;
+            this.lastPosY = evt.clientY;
+            console.log("trigger down");
+            downHandler(evt, sigInst);
+        }
+    });
+    selectionCanvas.on('mouse:move', function(opt) {
+        if (this.isDragging) {
+            var e = opt.e;
+            this.viewportTransform[4] += e.clientX - this.lastPosX;
+            this.viewportTransform[5] += e.clientY - this.lastPosY;
+            this.requestRenderAll();
+            this.lastPosX = e.clientX;
+            this.lastPosY = e.clientY;
+            console.log("trigger move");
+            moveHandler(e, sigInst);
+        }
+    });
+    selectionCanvas.on('mouse:up', function(opt) {
+        this.isDragging = false;
+        this.selection = true;
+        upHandler(opt.e, sigInst);
+    });
+
+    $("#detail_graph_container .canvas-container").on('click', function (event) {
+        clickHandler(event, sigInst);
+    });
+
+    $("#detail_graph_container .canvas-container").on('mouseout', function (event) {
+        selectionCanvas.isDragging = false;
+        upHandler(event, sigInst);
     });
 
 }
@@ -152,7 +191,7 @@ $(function() {
             });
 
             sigInst.refresh();
-            readEdges();
+            //readEdges();
             initDetailSelectionCanvas();
         });
 
@@ -314,81 +353,3 @@ sigma.canvas.edges.curvedArrow =
         context.closePath();
         context.fill();
     };
-
-
-/**
- * The handler listening to the 'wheel' mouse event. It will basically zoom
- * in or not into the graph.
- *
- * @param {event} ev A propagated event.
- */
-function wheelHandler(ev) {
-    let e = ev.originalEvent;
-
-    let pos,
-        ratio,
-        animation,
-        wheelDelta = sigma.utils.getDelta(e);
-
-    let settings = sigInst.settings;
-    let camera = sigInst.camera;
-    let canvas = selectionCanvas;
-
-    if (settings('mouseEnabled') && settings('mouseWheelEnabled') && wheelDelta !== 0) {
-        ratio = wheelDelta > 0 ?
-            1 / settings('zoomingRatio'):
-            settings('zoomingRatio');
-
-        // this seems to break zooming to anchor, as the supplied x/y positions are wrong
-        // TODO: find error cause if fix is desired
-        /*pos = camera.cameraPosition(
-            sigma.utils.getX(e) - sigma.utils.getCenter(e).x,
-            sigma.utils.getY(e) - sigma.utils.getCenter(e).y,
-            false
-        );*/
-
-        animation = {
-            duration: settings('mouseZoomDuration')
-        };
-
-        let canvasZoom = translateZoom(ratio);
-
-        // hide fabric canvas while sigma is smoothly zooming
-        $('#selection_canvas').hide();
-        setTimeout(function() {
-            $('#selection_canvas').show();
-        }, settings('mouseZoomDuration'));
-
-        //sigma.utils.zoomTo(camera, pos.x, pos.y, ratio, animation);
-        sigma.utils.zoomTo(camera, 0, 0, ratio, animation);
-        canvas.zoomToPoint({ x: canvas.width / 2, y: canvas.height/2}, canvasZoom);
-
-        if (e.preventDefault)
-            e.preventDefault();
-        else
-            e.returnValue = false;
-
-        e.stopPropagation();
-        return false;
-    }
-}
-
-/**
- * converts sigma-zoom ratio to fabric-zoom ratio
- * @param ratio
- * @returns {number}
- */
-function translateZoom(ratio) {
-    let settings = sigInst.settings;
-    let camera = sigInst.camera;
-
-    let newRatio = Math.max(
-        settings('zoomMin'),
-        Math.min(
-            settings('zoomMax'),
-            camera.ratio * ratio
-        )
-    );
-
-    return 1/newRatio;
-}
