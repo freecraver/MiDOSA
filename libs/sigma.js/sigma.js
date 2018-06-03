@@ -4487,13 +4487,13 @@
         marginY = this.cameraPosition(0, height / 4, true).y;
 
     return {
-      x1: this.x - centerVect.x - marginX,
-      y1: this.y - centerVect.y - marginY,
-      x2: this.x - centerVect.x + marginX + widthVect.x,
-      y2: this.y - centerVect.y - marginY + widthVect.y,
+      x1: this.x - centerVect.x,
+      y1: this.y - centerVect.y,
+      x2: this.x - centerVect.x + widthVect.x,
+      y2: this.y - centerVect.y - widthVect.y,
       height: Math.sqrt(
         Math.pow(heightVect.x, 2) +
-        Math.pow(heightVect.y + 2 * marginY, 2)
+        Math.pow(heightVect.y, 2)
       )
     };
   };

@@ -140,6 +140,7 @@ function initDetailSelectionCanvas() {
     });
     selectionCanvas.on('mouse:move', function(opt) {
         if (this.isDragging) {
+            // panning of whole canvas
             var e = opt.e;
             this.viewportTransform[4] += e.clientX - this.lastPosX;
             this.viewportTransform[5] += e.clientY - this.lastPosY;
@@ -148,6 +149,15 @@ function initDetailSelectionCanvas() {
             this.lastPosY = e.clientY;
             console.log("trigger move");
             moveHandler(e, sigInst);
+        } else if (selectionCanvas.getActiveObject() != null) {
+            // move or transform a selection rectangle
+            let rect = selectionCanvas.getActiveObject();
+            let filterIdx = selectionBoxArr.indexOf(rect);
+            let sigmaCoord = getSigmaCoordinatesFromFabric(rect);
+
+            filterArr[filterIdx].entryMap.set(x_axis, {min: sigmaCoord.x1, max:sigmaCoord.x2});
+            filterArr[filterIdx].entryMap.set(y_axis, {min: sigmaCoord.y1, max:sigmaCoord.y2});
+            getBoxes();
         }
     });
     selectionCanvas.on('mouse:up', function(opt) {
@@ -261,9 +271,11 @@ function addSelection() {
         transparentCorners: true
     });
 
+    let sigmaCoord = getSigmaCoordinatesFromFabric(rect);
+
     let filter = new Filter([
-        {feature:x_axis, boundary:{min: rect.left, max:rect.left+rect.width}},
-        {feature:y_axis, boundary:{min: rect.top, max:rect.top+rect.height}},
+        {feature:x_axis, boundary:{min: sigmaCoord.x1, max:sigmaCoord.x2}},
+        {feature:y_axis, boundary:{min: sigmaCoord.y1, max:sigmaCoord.y2}}
     ],
         colorStr);
 
@@ -284,95 +296,83 @@ function removeActiveSelection() {
         let idx = selectionBoxArr.indexOf(activeRectangle);
         if (idx > -1) {
             selectionBoxArr.splice(idx, 1);
+            filterArr.splice(idx, 1); // indexes are the same
         }
         selectionCanvas.remove(activeRectangle);
     }
 }
 
+/**
+ * returns array of outgoing edges within selections
+ */
 function getBoxes() {
-    let curNodes = sigInst.camera.quadtree.area({x1:0,x2:400, y1:0, y2:400, height:400});
+
+    let allNodes = sigInst.camera.graph.nodes();
+    allNodes.forEach(function(node) {
+        node.color = sigInst.settings('defaultNodeColor');
+    });
+
+    filterArr.forEach(function(el) {
+        let x_min = -99999,
+            x_max = 999999,
+            y_min = -99999,
+            y_max = 999999;
+
+        // get boundaries for current features from filter
+        if (el.entryMap.has(x_axis)) {
+            let boundaries = el.entryMap.get(x_axis);
+            x_min = boundaries.min;
+            x_max = boundaries.max;
+        }
+        if (el.entryMap.has(y_axis)) {
+            let boundaries = el.entryMap.get(y_axis);
+            y_min = boundaries.min;
+            y_max = boundaries.max;
+        }
+
+        // sigma quadtree calculation is buggy -> therefore check all nodes (not dramatic as we don't have many nodes)
+        // sigma wants to have same y_min twice (potential error in sigInst.camera.getRectangle ?)
+        //let curNodes = sigInst.camera.quadtree.area({x1: x_min, x2: x_max, y1: y_min, y2: y_min, height: y_max-y_min});
+        let curNodes = allNodes.filter(node => node["read_cam0:x"] >= x_min && node["read_cam0:x"] <= x_max
+                                        && node["read_cam0:y"] >= y_min && node["read_cam0:y"] <= y_max);
+        curNodes.forEach(function(node){
+            node.color = el.markingColor;
+        });
+    });
+    sigInst.refresh({ skipIndexation: true });
 }
 
 /**
- * This edge renderer will display edges as curves with arrow heading.
- * SOURCE: sigma.js - copied because minification seemed to introduce problems
+ * translate from fabric canvas coordinates to sigma coordinates
  *
- * @param  {object}                   edge         The edge object.
- * @param  {object}                   source node  The edge source node.
- * @param  {object}                   target node  The edge target node.
- * @param  {CanvasRenderingContext2D} context      The canvas context.
- * @param  {configurable}             settings     The settings function.
+ * @param fbSelectionRectangle
+ * @returns {{x1: number, x2: number, y1: number, y2: number}}
  */
-sigma.canvas.edges.curvedArrow =
-    function(edge, source, target, context, settings) {
-        var color = edge.color,
-            prefix = settings('prefix') || '',
-            edgeColor = settings('edgeColor'),
-            defaultNodeColor = settings('defaultNodeColor'),
-            defaultEdgeColor = settings('defaultEdgeColor'),
-            cp = {},
-            size = edge[prefix + 'size'] || 1,
-            tSize = target[prefix + 'size'],
-            sX = source[prefix + 'x'],
-            sY = source[prefix + 'y'],
-            tX = target[prefix + 'x'],
-            tY = target[prefix + 'y'],
-            aSize = Math.max(size * 2.5, settings('minArrowSize')),
-            d,
-            aX,
-            aY,
-            vX,
-            vY;
+function getSigmaCoordinatesFromFabric(fbSelectionRectangle) {
+    let sigRectangle = sigInst.camera.getRectangle(sigInst.renderers[0].width, sigInst.renderers[0].height);
+    let fbRectangle = selectionCanvas.calcViewportBoundaries();
+    let fbWidth = fbRectangle.tr.x - fbRectangle.tl.x,
+        fbHeight = fbRectangle.bl.y - fbRectangle.tl.y,
+        sigWidth = sigRectangle.x2 - sigRectangle.x1,
+        sigHeight = sigRectangle.height;
 
-        cp = (source.id === target.id) ?
-            sigma.utils.getSelfLoopControlPoints(sX, sY, tSize) :
-            sigma.utils.getQuadraticControlPoint(sX, sY, tX, tY);
+    // calculate proportional distance within fabric space
+    let x_min_prop = (fbSelectionRectangle.left - fbRectangle.tl.x) / fbWidth,
+        x_max_prop = (fbSelectionRectangle.left + fbSelectionRectangle.width * fbSelectionRectangle.scaleX - fbRectangle.tl.x) / fbWidth,
+        y_min_prop = (fbSelectionRectangle.top - fbRectangle.tl.y) / fbHeight,
+        y_max_prop = (fbSelectionRectangle.top + fbSelectionRectangle.height * fbSelectionRectangle.scaleY - fbRectangle.tl.y) / fbHeight;
 
-        if (source.id === target.id) {
-            d = Math.sqrt(Math.pow(tX - cp.x1, 2) + Math.pow(tY - cp.y1, 2));
-            aX = cp.x1 + (tX - cp.x1) * (d - aSize - tSize) / d;
-            aY = cp.y1 + (tY - cp.y1) * (d - aSize - tSize) / d;
-            vX = (tX - cp.x1) * aSize / d;
-            vY = (tY - cp.y1) * aSize / d;
-        }
-        else {
-            d = Math.sqrt(Math.pow(tX - cp.x, 2) + Math.pow(tY - cp.y, 2));
-            aX = cp.x + (tX - cp.x) * (d - aSize - tSize) / d;
-            aY = cp.y + (tY - cp.y) * (d - aSize - tSize) / d;
-            vX = (tX - cp.x) * aSize / d;
-            vY = (tY - cp.y) * aSize / d;
-        }
+    /*console.log("Translated pairs (" + fbSelectionRectangle.left + "," + (sigRectangle.x1 + x_min_prop * sigWidth) + ");("
+                                     + (fbSelectionRectangle.left + fbSelectionRectangle.width * fbSelectionRectangle.scaleX) + "," + (sigRectangle.x1 + x_max_prop * sigWidth) + ");("
+                                     + fbSelectionRectangle.top + "," + (sigRectangle.y1 + y_min_prop * sigHeight) + ");("
+                                     + (fbSelectionRectangle.top + fbSelectionRectangle.height * fbSelectionRectangle.scaleY) + "," + (sigRectangle.y1 + y_max_prop * sigHeight) +")");
+    */
 
-        if (!color)
-            switch (edgeColor) {
-                case 'source':
-                    color = source.color || defaultNodeColor;
-                    break;
-                case 'target':
-                    color = target.color || defaultNodeColor;
-                    break;
-                default:
-                    color = defaultEdgeColor;
-                    break;
-            }
-
-        context.strokeStyle = color;
-        context.lineWidth = size;
-        context.beginPath();
-        context.moveTo(sX, sY);
-        if (source.id === target.id) {
-            context.bezierCurveTo(cp.x2, cp.y2, cp.x1, cp.y1, aX, aY);
-        } else {
-            context.quadraticCurveTo(cp.x, cp.y, aX, aY);
-        }
-        context.stroke();
-
-        context.fillStyle = color;
-        context.beginPath();
-        context.moveTo(aX + vX, aY + vY);
-        context.lineTo(aX + vY * 0.6, aY - vX * 0.6);
-        context.lineTo(aX - vY * 0.6, aY + vX * 0.6);
-        context.lineTo(aX + vX, aY + vY);
-        context.closePath();
-        context.fill();
+    // return rectangle fitted to sigma space
+    return {
+        x1: sigRectangle.x1 + x_min_prop * sigWidth,
+        x2: sigRectangle.x1 + x_max_prop * sigWidth,
+        y1: sigRectangle.y1 + y_min_prop * sigHeight,
+        y2: sigRectangle.y1 + y_max_prop * sigHeight
     };
+}
