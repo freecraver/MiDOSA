@@ -20,7 +20,8 @@ let filterArr = [];
 const DETAIL_MIN_VAL = 0; //for scaling
 const DETAIL_MAX_VAL = 1000; //for scaling*/
 
-let detailView;
+let dtView;
+let controller;
 
 const colorPool = [[188,179,66],
     [132,98,202],
@@ -36,8 +37,14 @@ const colorPool = [[188,179,66],
 
 $(function() {
 
-    detailView = new DetailView();
-    detailView.initSigma('detail_graph_container', 'detail_panel');
-    detailView.readNodes(NODES_FILE, NODE_ID_COL, X_AXIS, Y_AXIS);
-    detailView.readEdges(EDGES_FILE, $("#detail_progress"), EDGE_ID_COL, SOURCE_NODE_COL, TARGET_NODE_COL);
+    let callback_node_load_complete = function() {
+        controller = new Controller(dtView);
+        //dtView.readEdges(EDGES_FILE, $("#detail_progress"), EDGE_ID_COL, SOURCE_NODE_COL, TARGET_NODE_COL);
+    };
+
+    dtView = new DetailView();
+    dtView.initSigma('detail_graph_container', 'detail_panel');
+    dtView.readNodes(NODES_FILE, NODE_ID_COL, X_AXIS, Y_AXIS, callback_node_load_complete);
+
 });
+

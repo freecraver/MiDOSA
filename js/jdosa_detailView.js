@@ -6,11 +6,11 @@ class DetailView {
         this.selectionCanvas = undefined;
         this.sigInst = undefined;
         this.selectionBoxArr = [];
-        this.filterArr = [];
         this.min_val = 0;
         this.max_val = 1000;
         this.x_axis = undefined;
         this.y_axis = undefined;
+        this.scalingParamMap = new Map();
     }
 
     /**
@@ -72,8 +72,9 @@ class DetailView {
      * @param node_id_col column name from file used as ID
      * @param x_axis  column name from file used as horizontal axis
      * @param y_axis  column name from file used as vertical axis
+     * @param callback_function function to be executed as soon as loading finishes
      */
-    readNodes(file, node_id_col, x_axis, y_axis) {
+    readNodes(file, node_id_col, x_axis, y_axis, callback_function) {
         this.x_axis = x_axis;
         this.y_axis = y_axis;
         let _self = this;
@@ -82,11 +83,14 @@ class DetailView {
         oboe(file)
             .done(function(json){
                 let rawNodes = json; //load data
-                let scalingArr = _self.getScalingParams(rawNodes);
+
+                // get scaling parameter from raw data (we don't have sigma nodes at this point)
+                _self.fetchScalingParams(x_axis, rawNodes);
+                _self.fetchScalingParams(y_axis, rawNodes);
 
                 rawNodes.forEach(function(rawNode){
-                    rawNode.x = _self.getScaled(rawNode[x_axis], scalingArr.x, "X");
-                    rawNode.y = _self.getScaled(rawNode[y_axis], scalingArr.y, "Y");
+                    rawNode.x = _self.getScaled(rawNode[x_axis], x_axis);
+                    rawNode.y = _self.getScaled(rawNode[y_axis], y_axis);
                     rawNode.id = rawNode[node_id_col].toString();
                     rawNode.size = 0.1;
                     _self.sigInst.graph.addNode(rawNode);
@@ -94,6 +98,7 @@ class DetailView {
 
                 _self.sigInst.refresh();
                 _self.initDetailSelectionCanvas();
+                callback_function();
             });
     }
 
@@ -182,10 +187,11 @@ class DetailView {
                 let rect = _self.selectionCanvas.getActiveObject();
                 let filterIdx = _self.selectionBoxArr.indexOf(rect);
                 let sigmaCoord = _self.getSigmaCoordinatesFromFabric(rect);
+                let featureCoord = _self.getFeatureCoordinatesFromSigma(sigmaCoord);
 
-                _self.filterArr[filterIdx].entryMap.set(_self.x_axis, {min: sigmaCoord.x1, max:sigmaCoord.x2});
-                _self.filterArr[filterIdx].entryMap.set(_self.y_axis, {min: sigmaCoord.y1, max:sigmaCoord.y2});
-                _self.getBoxes(_self);
+                // notify controller
+                controller.updateFilter(filterIdx, _self.x_axis, {min: featureCoord.x1, max:featureCoord.x2});
+                controller.updateFilter(filterIdx, _self.y_axis, {min: featureCoord.y1, max:featureCoord.y2});
             }
         });
         _self.selectionCanvas.on('mouse:up', function(opt) {
@@ -235,17 +241,17 @@ class DetailView {
         });
 
         let sigmaCoord = view.getSigmaCoordinatesFromFabric(rect);
+        let featureCoord = view.getFeatureCoordinatesFromSigma(sigmaCoord);
 
         let filter = new Filter([
-                {feature:view.x_axis, boundary:{min: sigmaCoord.x1, max:sigmaCoord.x2}},
-                {feature:view.y_axis, boundary:{min: sigmaCoord.y1, max:sigmaCoord.y2}}
+                {feature:view.x_axis, boundary:{min: featureCoord.x1, max:featureCoord.x2}},
+                {feature:view.y_axis, boundary:{min: featureCoord.y1, max:featureCoord.y2}}
             ],
             colorStr);
 
-// "add" rectangle onto canvas
         view.selectionCanvas.add(rect);
         view.selectionBoxArr.push(rect);
-        view.filterArr.push(filter);
+        controller.addFilter(filter);
     }
 
     /**
@@ -259,50 +265,35 @@ class DetailView {
             let idx = this.selectionBoxArr.indexOf(activeRectangle);
             if (idx > -1) {
                 this.selectionBoxArr.splice(idx, 1);
-                this.filterArr.splice(idx, 1); // indexes are the same
+                controller.removeFilter(idx);
             }
             this.selectionCanvas.remove(activeRectangle);
         }
     }
 
     /**
-     * returns array of outgoing edges within selections
+     * colors all mapped nodes to the respective color of the filter
+     *
+     * @param boxResult result of filter search [containing 'mapped' & 'unmapped' nodes]
      */
-    getBoxes(view) {
+    recalcColoring(boxResult) {
+        let colorArr = controller.getFilterColors();
+        let _self = this;
 
-        let allNodes = view.sigInst.camera.graph.nodes();
-        allNodes.forEach(function(node) {
-            node.color = view.sigInst.settings('defaultNodeColor');
-        });
-
-        view.filterArr.forEach(function(el) {
-            let x_min = -99999,
-                x_max = 999999,
-                y_min = -99999,
-                y_max = 999999;
-
-            // get boundaries for current features from filter
-            if (el.entryMap.has(view.x_axis)) {
-                let boundaries = el.entryMap.get(view.x_axis);
-                x_min = boundaries.min;
-                x_max = boundaries.max;
-            }
-            if (el.entryMap.has(view.y_axis)) {
-                let boundaries = el.entryMap.get(view.y_axis);
-                y_min = boundaries.min;
-                y_max = boundaries.max;
-            }
-
-            // sigma quadtree calculation is buggy -> therefore check all nodes (not dramatic as we don't have many nodes)
-            // sigma wants to have same y_min twice (potential error in sigInst.camera.getRectangle ?)
-            //let curNodes = sigInst.camera.quadtree.area({x1: x_min, x2: x_max, y1: y_min, y2: y_min, height: y_max-y_min});
-            let curNodes = allNodes.filter(node => node["read_cam0:x"] >= x_min && node["read_cam0:x"] <= x_max
-                && node["read_cam0:y"] >= y_min && node["read_cam0:y"] <= y_max);
-            curNodes.forEach(function(node){
-                node.color = el.markingColor;
+        // color all matched nodes
+        for (let i = 0; i< boxResult.mapped.length; i++) {
+            let curColor = colorArr[i];
+            boxResult.mapped[i].forEach(function(node) {
+                node.color = curColor;
             });
+        }
+
+        // color all unmatched nodes
+        boxResult.unmapped.forEach(function(node) {
+            node.color = _self.sigInst.settings('defaultNodeColor');
         });
-        view.sigInst.refresh({ skipIndexation: true });
+
+        _self.sigInst.refresh({ skipIndexation: true });
     }
 
     /**
@@ -325,11 +316,6 @@ class DetailView {
             y_min_prop = (fbSelectionRectangle.top - fbRectangle.tl.y) / fbHeight,
             y_max_prop = (fbSelectionRectangle.top + fbSelectionRectangle.height * fbSelectionRectangle.scaleY - fbRectangle.tl.y) / fbHeight;
 
-        /*console.log("Translated pairs (" + fbSelectionRectangle.left + "," + (sigRectangle.x1 + x_min_prop * sigWidth) + ");("
-                                         + (fbSelectionRectangle.left + fbSelectionRectangle.width * fbSelectionRectangle.scaleX) + "," + (sigRectangle.x1 + x_max_prop * sigWidth) + ");("
-                                         + fbSelectionRectangle.top + "," + (sigRectangle.y1 + y_min_prop * sigHeight) + ");("
-                                         + (fbSelectionRectangle.top + fbSelectionRectangle.height * fbSelectionRectangle.scaleY) + "," + (sigRectangle.y1 + y_max_prop * sigHeight) +")");
-        */
 
         // return rectangle fitted to sigma space
         return {
@@ -341,18 +327,52 @@ class DetailView {
     }
 
     /**
-     * Calculates min/max values for x/y axis
-     * @param nodes
-     * @returns {{x: {min: number, max: number}, y: {min: number, max: number}}}
+     * Translates sigma coordinates to feature coordinates by applying un/re-scaling
+     * @param sigmaRectangle rectangle of sigma coordinates
+     *
+     * @returns {{x1: number, x2: number, y1: number, y2: number}}
      */
-    getScalingParams(nodes){
-        let _self = this;
-        let max_x = Math.max.apply(Math,nodes.map(function(o){return o[_self.x_axis];}));
-        let min_x = Math.min.apply(Math,nodes.map(function(o){return o[_self.x_axis];}));
-        let max_y = Math.max.apply(Math,nodes.map(function(o){return o[_self.y_axis];}));
-        let min_y = Math.min.apply(Math,nodes.map(function(o){return o[_self.y_axis];}));
+    getFeatureCoordinatesFromSigma(sigmaRectangle) {
+        // TODO: take scaling and panning of camera into consideration :-(
+        return {
+            x1: this.getUnscaled(sigmaRectangle.x1, this.x_axis),
+            x2: this.getUnscaled(sigmaRectangle.x2, this.x_axis),
+            y1: this.getUnscaled(sigmaRectangle.y1, this.y_axis),
+            y2: this.getUnscaled(sigmaRectangle.y2, this.y_axis)
+        };
+    }
 
-        return {x: {min: min_x,max: max_x},y: {min: min_y,max: max_y}};
+    /**
+     * fetches min/max values for feature
+     *
+     * @param feature feature to be queried
+     * @param nodes nodes to be checked (optional: if not present the nodes of the sigma instance are used)
+     * @returns {min: number, max: number} minima/maxima
+     */
+    fetchScalingParams(feature, nodes){
+        let _self = this;
+
+        if (_self.scalingParamMap.has(feature)) {
+            return _self.scalingParamMap.get(feature);
+        } else {
+
+            // no nodes supplied -> get from sigma
+            if (nodes == undefined) {
+                nodes = _self.sigInst.camera.graph.nodes();
+            }
+
+            // calculate max-min
+            let max = Math.max.apply(Math, nodes.map(function (o) {
+                return o[feature];
+            }));
+            let min = Math.min.apply(Math, nodes.map(function (o) {
+                return o[feature];
+            }));
+
+            // cache for consecutive queries
+            _self.scalingParamMap.set(feature, {min: min, max: max});
+            return {min: min, max: max};
+        }
     }
 
     /**
@@ -363,37 +383,41 @@ class DetailView {
      * @param scalingAxis either 'X' or 'Y'
      * @returns number position in interval
      */
-    getScaled(value, scalingVals, scalingAxis="X") {
-        if ((this.x_axis.toLowerCase().includes("latitude") || this.y_axis.toLowerCase().includes("latitude"))
-            && (this.x_axis.toLowerCase().includes("longitude") || this.y_axis.toLowerCase().includes("longitude"))) {
-            // apply latitude/longitude projection when both axis are coordinates
-            if (scalingAxis === "X") {
-                if (this.x_axis.toLowerCase().includes("latitude")) {
-                    return this.max_val/180 * (90 - value);
-                } else {
-                    return this.max_val/720 * (180 + value);
-                }
-            } else {
-                if (this.y_axis.toLowerCase().includes("latitude")) {
-                    return this.max_val/180 * (90 - value);
-                } else {
-                    return this.max_val/720 * (180 + value);
-                }
-            }
+    getScaled(value, feature) {
+        let scalingVals = this.fetchScalingParams(feature);
+
+        // approx
+        if (feature.toLowerCase().includes("latitude")) {
+            return this.max_val/180 * (90 - value);
+        } else if (feature.toLowerCase().includes("longitude")) {
+            return this.max_val/720 * (180 + value);
         }
 
         // apply standard interval scaling
         return this.min_val + (this.max_val-this.min_val)/(scalingVals.max - scalingVals.min) *(value-scalingVals.min);
     }
 
-}
+    /**
+     * revert scaling from [DETAIL_MIN_VAL, DETAIL_MAX_VAL] to old interval
+     * or revert longitude/latitude projection for coordinates
+     * @param scaledValue
+     * @param feature
+     * @returns {number}
+     */
+    getUnscaled(scaledValue, feature) {
+        // TODO: change coordinate approximation scaling
 
-class Filter {
-    constructor(filterArr, markingColor){
-        this.entryMap = new Map();
-        this.markingColor = markingColor;
-        filterArr.forEach(function(el){
-            this.entryMap.set(el.feature, el.boundary);
-        }, this);
+        let scalingVals = this.fetchScalingParams(feature);
+
+        // approx
+        if (feature.toLowerCase().includes("latitude")) {
+            return 90 - 180 * scaledValue / this.max_val;
+        } else if (feature.toLowerCase().includes("longitude")) {
+            return 720 * scaledValue / this.max_val - 180;
+        }
+
+        // apply standard interval scaling
+        return scalingVals.min + (scalingVals.max - scalingVals.min) / (this.max_val - this.min_val) * (scaledValue - this.min_val);
     }
+
 };
