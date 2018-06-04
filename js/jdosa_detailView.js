@@ -334,11 +334,17 @@ class DetailView {
      */
     getFeatureCoordinatesFromSigma(sigmaRectangle) {
         // TODO: take scaling and panning of camera into consideration :-(
+        let x1 = this.getUnscaled(sigmaRectangle.x1, this.x_axis),
+            x2 = this.getUnscaled(sigmaRectangle.x2, this.x_axis),
+            y1 = this.getUnscaled(sigmaRectangle.y1, this.y_axis),
+            y2 = this.getUnscaled(sigmaRectangle.y2, this.y_axis);
+
+        // return min/max as left-most variable does not need to be the biggest (lat/lng)
         return {
-            x1: this.getUnscaled(sigmaRectangle.x1, this.x_axis),
-            x2: this.getUnscaled(sigmaRectangle.x2, this.x_axis),
-            y1: this.getUnscaled(sigmaRectangle.y1, this.y_axis),
-            y2: this.getUnscaled(sigmaRectangle.y2, this.y_axis)
+            x1: Math.min(x1, x2),
+            x2: Math.max(x1, x2),
+            y1: Math.min(y1, y2),
+            y2: Math.max(y1, y2)
         };
     }
 

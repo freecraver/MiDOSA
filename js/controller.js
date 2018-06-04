@@ -61,9 +61,14 @@ class Controller {
         let _self = this;
 
         // used to store box arrays
-        let boxArr = [[],[]],
+        let boxArr = [],
             i,
             unmapArr = [];
+
+        // init 2D array
+        for (i = 0; i < _self.filterArr.length; i++ ) {
+            boxArr[i] = [];
+        }
 
         // check for each node if it fits into a given multidimensional box
         _self.nodes.forEach(function(node) {
