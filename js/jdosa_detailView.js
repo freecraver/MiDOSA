@@ -149,12 +149,9 @@ class DetailView {
             })
             .done(function(json){
                 progress_div.remove();
+                controller.buildEdgeDict(rawEdges);
                 _self.sigInst.refresh();
             });
-    }
-
-    hideEdgesForNode(node) {
-
     }
 
     /**

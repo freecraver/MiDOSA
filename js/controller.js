@@ -5,7 +5,27 @@ class Controller {
     constructor(detailView){
         this.filterArr = [];
         this.nodes = detailView.sigInst.camera.graph.nodes();
+        this.edgeDict = undefined;
         this.detailView = detailView;
+    }
+
+
+    /**
+     * builds edgeDict dictionary with key: edge.source_node value:edgeList
+     * should be called as soon as all edges are loaded
+     *
+     * @param edges sigma edges
+     */
+    buildEdgeDict(edges) {
+        let _self = this;
+        _self.edgeDict = {};
+
+        edges.forEach(function(edge) {
+            if (! (edge.source in _self.edgeDict)) {
+                _self.edgeDict[edge.source] = [];
+            }
+            _self.edgeDict[edge.source].push(edge);
+        });
     }
 
     /**
