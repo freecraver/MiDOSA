@@ -38,9 +38,10 @@ class DetailView {
                 minNodeSize: 1,
                 maxNodeSize: 1,
                 drawEdges: false,
-                minArrowSize: 10,
+                minArrowSize: 4,
                 zoomMin: 0.1,
-                autoRescale: false
+                autoRescale: false,
+                hideEdgesOnMove: true
             }
         });
 
@@ -51,7 +52,7 @@ class DetailView {
         $("#" + panel_id + " .edge_toggle").click(function() {
             $("#" + panel_id + " .edge_toggle > i").toggleClass('fa-eye fa-eye-slash');
             _self.sigInst.settings("drawEdges", !_self.sigInst.settings("drawEdges")); //toggle
-            _self.sigInst.refresh();
+            _self.sigInst.refresh({ skipIndexation: true });
         });
 
         // add new selection box on click
@@ -150,6 +151,10 @@ class DetailView {
                 progress_div.remove();
                 _self.sigInst.refresh();
             });
+    }
+
+    hideEdgesForNode(node) {
+
     }
 
     /**
@@ -303,9 +308,12 @@ class DetailView {
             });
         }
 
+        // if we've made a selection color other nodes grey
+        let nodeColor = (boxResult.mapped.length > 0 ? 'rgb(224,224,224)' : _self.sigInst.settings('defaultNodeColor'));
+
         // color all unmatched nodes
         boxResult.unmapped.forEach(function(node) {
-            node.color = _self.sigInst.settings('defaultNodeColor');
+            node.color = nodeColor;
         });
 
         _self.sigInst.refresh({ skipIndexation: true });
