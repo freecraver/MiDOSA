@@ -7,7 +7,7 @@ class DetailView {
         this.sigInst = undefined;
         this.selectionBoxArr = [];
         this.min_val = 0;
-        this.max_val = 1000;
+        this.max_val = 500;
         this.x_axis = undefined;
         this.y_axis = undefined;
         this.scalingParamMap = new Map();
@@ -19,23 +19,28 @@ class DetailView {
      *
      * @param container_id id of div where detail graph should be displayed
      * @param panel_id id of the bootstrap panel wrapping the container
+     * @param use_web_gl if true, webgl is used for rendering (keep in mind that less functionality is supported)
      */
-    initSigma(container_id, panel_id) {
+    initSigma(container_id, panel_id, use_web_gl) {
         let _self = this;
 
-        sigma.canvas.edges.def = sigma.canvas.edges.curvedArrow;
+        if (!use_web_gl) {
+            sigma.canvas.edges.def = sigma.canvas.edges.curvedArrow;
+        }
+
         this.sigInst = new sigma({
             container:container_id,
             renderer: {
                 container:document.getElementById(container_id),
-                type: sigma.renderers.canvas
+                type: (use_web_gl ? 'webgl' : 'canvas')
             },
             settings: {
-                minNodeSize: 0.1,
+                minNodeSize: 1,
                 maxNodeSize: 1,
                 drawEdges: false,
-                minArrowSize: 4,
-                zoomMin: 0.1
+                minArrowSize: 10,
+                zoomMin: 0.1,
+                autoRescale: false
             }
         });
 
@@ -62,6 +67,15 @@ class DetailView {
             }
             e.preventDefault(); // prevent the default action (scroll / move caret)
         });
+    }
+
+    /**
+     * positions sigma camera to the center of our scale
+     * and removes scaling
+     */
+    setCameraToCenter() {
+        let center_pos = (this.max_val - this.min_val) / 2;
+        this.sigInst.camera.goTo({x:center_pos, y:center_pos, ratio:1});
     }
 
     /**
@@ -92,12 +106,13 @@ class DetailView {
                     rawNode.x = _self.getScaled(rawNode[x_axis], x_axis);
                     rawNode.y = _self.getScaled(rawNode[y_axis], y_axis);
                     rawNode.id = rawNode[node_id_col].toString();
-                    rawNode.size = 0.1;
+                    rawNode.size = _self.sigInst.settings("minNodeSize");
                     _self.sigInst.graph.addNode(rawNode);
                 });
 
                 _self.sigInst.refresh();
                 _self.initDetailSelectionCanvas();
+                _self.setCameraToCenter();
                 callback_function();
             });
     }
@@ -333,7 +348,6 @@ class DetailView {
      * @returns {{x1: number, x2: number, y1: number, y2: number}}
      */
     getFeatureCoordinatesFromSigma(sigmaRectangle) {
-        // TODO: take scaling and panning of camera into consideration :-(
         let x1 = this.getUnscaled(sigmaRectangle.x1, this.x_axis),
             x2 = this.getUnscaled(sigmaRectangle.x2, this.x_axis),
             y1 = this.getUnscaled(sigmaRectangle.y1, this.y_axis),
@@ -383,47 +397,42 @@ class DetailView {
 
     /**
      * scale value from old interval to interval [DETAIL_MIN_VAL, DETAIL_MAX_VAL]
-     * or perform longitude/latitude projection for coordinates
-     * @param value
-     * @param scalingVals
-     * @param scalingAxis either 'X' or 'Y'
+     * @param value original feature-value to be fitted into sigma-space
+     * @param feature feature for which the value should be scaled
      * @returns number position in interval
      */
     getScaled(value, feature) {
         let scalingVals = this.fetchScalingParams(feature);
 
-        // approx
+        // apply standard interval scaling
+        let scaledVal = this.min_val + (this.max_val-this.min_val)/(scalingVals.max - scalingVals.min) *(value-scalingVals.min);
+
+        // latitude is higher at "top" (north pole)
         if (feature.toLowerCase().includes("latitude")) {
-            return this.max_val/180 * (90 - value);
-        } else if (feature.toLowerCase().includes("longitude")) {
-            return this.max_val/720 * (180 + value);
+            scaledVal *= -1;
+            scaledVal += this.max_val;
         }
 
-        // apply standard interval scaling
-        return this.min_val + (this.max_val-this.min_val)/(scalingVals.max - scalingVals.min) *(value-scalingVals.min);
+        return scaledVal;
     }
 
     /**
      * revert scaling from [DETAIL_MIN_VAL, DETAIL_MAX_VAL] to old interval
-     * or revert longitude/latitude projection for coordinates
-     * @param scaledValue
-     * @param feature
+     * @param scaledValue value from sigma-space to be converted back to original feature space
+     * @param feature feature for which the value should be unscaled
      * @returns {number}
      */
     getUnscaled(scaledValue, feature) {
-        // TODO: change coordinate approximation scaling
-
         let scalingVals = this.fetchScalingParams(feature);
 
-        // approx
+        // inverse for latitude
         if (feature.toLowerCase().includes("latitude")) {
-            return 90 - 180 * scaledValue / this.max_val;
-        } else if (feature.toLowerCase().includes("longitude")) {
-            return 720 * scaledValue / this.max_val - 180;
+            scaledValue -= this.max_val;
+            scaledValue *= -1;
         }
 
         // apply standard interval scaling
-        return scalingVals.min + (scalingVals.max - scalingVals.min) / (this.max_val - this.min_val) * (scaledValue - this.min_val);
+        return scalingVals.min + (scalingVals.max - scalingVals.min) / (this.max_val - this.min_val) * (scaledValue - this.min_val);;
     }
 
 };
