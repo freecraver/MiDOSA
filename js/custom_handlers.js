@@ -36,12 +36,16 @@ function upHandler(e, sigmaInstance) {
     let settings  = sigmaInstance.settings;
     let camera = sigmaInstance.camera;
 
+    if (camera.isMoving) {
+        // show edges again
+        camera.isMoving = false;
+        sigmaInstance.refresh({ skipIndexation: true });
+    }
+
     if (settings('mouseEnabled') && _isMouseDown) {
         _isMouseDown = false;
         if (_movingTimeoutId)
             clearTimeout(_movingTimeoutId);
-
-        camera.isMoving = false;
 
         // Update _isMoving flag:
         _isMoving = false;
