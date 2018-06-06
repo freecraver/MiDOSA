@@ -1,0 +1,41 @@
+ul.custom_tabs{
+	overflow:visible;
+	/*background:#F5F7FA;*/
+	background:#1A3147;
+	height:15px;
+	margin:5px 0 10px;
+	padding-left:5px;
+	position:relative;
+	z-index:1;
+	width:100%;	
+	border-bottom:1px solid #E6E9ED
+}
+ul.custom_tabs>li{
+	border:1px solid #E6E9ED;
+	color:#fff!important;
+	margin-top:-17px;
+	margin-left:5px;
+	/*background:#fff;*/
+	background:#0B1E31;
+	border-bottom:none;
+	border-radius:4px 4px 0 0
+}
+ul.custom_tabs>li.active{
+	border-right:6px solid #D3D6DA;
+	border-top:0;
+	margin-top:-15px
+}
+ul.custom_tabs>li a{
+	padding:5px 10px;
+	/*background:#F5F7FA;*/
+	background:#2A3F54 !important;
+	color:#fff!important;
+	margin:0;
+	border-top-right-radius:0
+}
+ul.custom_tabs>li a:hover{
+	border:1px solid transparent
+}
+ul.custom_tabs>li.active a{
+	border-bottom:none
+}

@@ -21,6 +21,9 @@ const DETAIL_MIN_VAL = 0; //for scaling
 const DETAIL_MAX_VAL = 1000; //for scaling*/
 
 let dtView;
+let ovView;
+let nodesNav;
+let edgesNav;
 let controller;
 
 const colorPool = [[188,179,66],
