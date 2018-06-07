@@ -1,0 +1,45 @@
+ .bin { 
+     position: relative !important; 
+     margin-right: 1px !important;
+ }
+
+ .bin-color { background-color: #DBE0E2 !important; }
+ .bin-color-selected { background-color: #0079BA !important; }
+ .bin-color-optimal { background-color: #CAF9F6 !important; }
+ .bin-color-optimal-selected { background-color: #01E2D4 !important; }
+
+ .in-range { z-index: 1 !important;}
+ .out-of-range { z-index: 0 !important;}
+ .selected-range { text-align: center !important; }
+
+ .ui-slider-horizontal { height: .2em !important; }
+ .ui-slider .ui-slider-handle {
+     width: .8em !important;
+     height: .8em !important;
+     border-radius: 50% !important;
+ }
+
+ .ui-corner-all {
+     border-radius: 0 !important;
+ }
+
+ .tooltip > .tooltiptext {
+     visibility: hidden !important;
+     width: 120px !important;
+     background-color: #FFFFCA !important;
+     color: black !important;
+     text-align: center !important;
+     padding: 12px !important;
+     position: absolute !important;
+     z-index: 100 !important;
+ }
+ .tooltip:hover > .tooltiptext {
+     visibility: visible !important;
+     margin-top: 50px !important;
+ }
+
+ .display-none{
+     display: none !important;
+ }
+
+

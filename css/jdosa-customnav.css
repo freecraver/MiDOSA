@@ -39,3 +39,17 @@ ul.custom_tabs>li a:hover{
 ul.custom_tabs>li.active a{
 	border-bottom:none
 }
+#histogramSlider, #histogramSlider2, #comp {
+	/*  opacity: 1!important;*/
+	max-width: 30% !important;
+	text-align:right;
+	/*max-height:100px;*/
+	margin: auto;
+}
+
+#reset-this-parent {
+  /*opacity: 1!important;
+  /** {
+    all: unset;
+  }*/
+}

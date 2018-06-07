@@ -10,6 +10,80 @@ class Controller {
     }
 
 
+
+    loadNodeNav() {
+        var numBins = 40;
+        var data = dataFactory(10000, numBins, false);
+        var keys = Object.keys(this.nodes[0]);
+
+        keys.forEach(function(key){
+            if (key[0]===key[0].toUpperCase()) {
+                var div = document.createElement('div');
+                div.style = "color:#fff; margin-left: 5px;"
+                div.innerHTML = key;
+                document.getElementById('nav_nodes_content').appendChild(div);
+            }
+        });
+
+        $("#histogramSlider").histogramSlider({
+            data: data,
+            sliderRange: [0, 1000000],
+            optimalRange: [0, 1000000],
+            selectedRange: [150000, 750000],
+            numberOfBins: numBins, 
+            showTooltips: false,
+            showSelectedRange: false
+        });
+        /*
+        numBins = 20;
+
+        $("#histogramSlider2").histogramSlider({
+            data: dataFactory(300, numBins, false),
+            sliderRange: [0, 1000000],
+            optimalRange: [0, 1000000],
+            selectedRange: [200000, 750000],
+            numberOfBins: numBins,
+            showSelectedRange: false,
+            showTooltips: false
+        });*/
+
+        //renderData(data);
+        
+        function dataFactory(itemCount, numberOfBins, group) {
+            var data = { "items": [] };
+
+            for (var i = 0; i < itemCount; i++) {
+                var rnd = Math.floor(Math.random() * numberOfBins) + 1;
+                var rnd2 = Math.floor(Math.random() * 120000);
+                var v = ((1000000 / numberOfBins) - rnd2) * rnd;
+                if (group) {
+                    data.items.push({ "value": v, "count": rnd });
+                } else {
+                    data.items.push({ "value": v });
+                }
+            }
+
+            return data;
+        }
+    }
+
+    loadEdgeNav(edges) {
+        /*var keys = Object.keys(edges[0]);
+
+        keys.forEach(function(key){
+            if (key[0]===key[0].toUpperCase()) {
+                var div = document.createElement('div');
+                div.style = "color:#fff; margin-left: 5px;"
+                div.innerHTML = key;
+
+                document.getElementById('nav_edges_content').appendChild(div);
+                
+                console.log(key);
+            }
+        });*/
+    }
+
+
     /**
      * builds edgeDict dictionary with key: edge.source_node value:edgeList
      * should be called as soon as all edges are loaded

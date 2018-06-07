@@ -7,20 +7,27 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Gentelella Alela! | </title>
+    <title>jDosa! | </title>
 
+    <link rel="stylesheet" type="text/css" href="libs/jquery-histogram-slider/histogram.slider.css">
+    <link rel="stylesheet" type="text/css" href="libs/jquery-histogram-slider/bootstrap.histogram.slider.css">
     <!-- Bootstrap -->
-    <link href="libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="libs/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="libs/font-awesome/css/font-awesome.min.css" rel="stylesheet">
     <!-- NProgress -->
     <link href="libs/nprogress/nprogress.css" rel="stylesheet">
+
+
+    
 
     <!-- Custom Theme Style -->
     <link href="css/custom.min.css" rel="stylesheet">
 	<!-- MiDosa styling -->
     <link href="css/jdosa.css" rel="stylesheet">
     <link href="css/jdosa-customnav.css" rel="stylesheet">
+
+
   </head>
 
   <body class="nav-md">
@@ -29,13 +36,13 @@
         <div class="col-md-3 left_col">
           <div class="left_col scroll-view">
             <div class="navbar nav_title" style="border: 0;">
-              <a href="index.html" class="site_title"><i class="fa fa-paw"></i> <span>Gentelella Alela!</span></a>
+              <a href="index.html" class="site_title"><i class="fa fa-paw"></i> <span>jDosa</span></a>
             </div>
 
             <div class="clearfix"></div>
 
             <!-- menu profile quick info -->
-            <div class="profile clearfix">
+            <!--<div class="profile clearfix">
               <div class="profile_pic">
                 <img src="images/img.jpg" alt="..." class="img-circle profile_img">
               </div>
@@ -45,6 +52,7 @@
               </div>
               <div class="clearfix"></div>
             </div>
+            -->
             <!-- /menu profile quick info -->
 
             <br />
@@ -55,22 +63,31 @@
                 <div class="x_content">
                   <div class="" role="tabpanel" data-example-id="togglable-tabs">
                     <ul id="myTab" class="nav nav-tabs custom_tabs" role="tablist">
-                      <li role="presentation" class="active"><a href="#nav_nodes_content" id="nodes-tab" role="tab" data-toggle="tab" aria-expanded="false">Nodes</a>
+                      <li role="presentation" class="active"><a href="#nav_edges_content" id="edges-tab" role="tab" data-toggle="tab" aria-expanded="true">Edges</a>
                       </li>
-                      <li role="presentation" class=""><a href="#nav_edges_content" role="tab" id="edges-tab" data-toggle="tab" aria-expanded="true">Edges</a>
+                      <li role="presentation" class=""><a href="#nav_nodes_content" role="tab" id="nodes-tab" data-toggle="tab" aria-expanded="false">Nodes</a>
                       </li>
                     </ul>
                     <div id="myTabContent" class="tab-content">
-                      <div role="tabpanel" class="tab-pane fade active in" id="nav_nodes_content" aria-labelledby="nodes-tab">
-                        <p>nodes</p>
+                      <div role="tabpanel" class="tab-pane fade" id="nav_nodes_content" aria-labelledby="nodes-tab">
+
+                        <div id="histogramSlider" data-bind="slider: histoSlider"></div>
+
+
+
+
+                        
+                        
+
                       </div>
-                      <div role="tabpanel" class="tab-pane fade" id="nav_edges_content" aria-labelledby="edges-tab">
+                      
+                      <div role="tabpanel" class="tab-pane fade active in" id="nav_edges_content" aria-labelledby="edges-tab">
                         <p>edges</p>
+                        
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
 
               </div>
@@ -140,6 +157,7 @@
         </div>
 
         <!-- top navigation -->
+        <!--
         <div class="top_nav">
           <div class="nav_menu">
             <nav>
@@ -234,6 +252,7 @@
             </nav>
           </div>
         </div>
+        -->
         <!-- /top navigation -->
 
         <!-- page content -->
@@ -312,13 +331,16 @@
                   </div>
                   <div id="overview_graph_container">
                     <!-- The overview graph is displayed here.. -->
-                     <div id="overview_progress">       
-                     </div>
+                     <div id="">
+                        <div id="histogramSlider2"></div>
+                        Range: <span data-bind="text: range"></span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            </div>          
           </div>
-        </div>
+
         <!-- /page content -->
 
         <!-- footer content -->
@@ -346,14 +368,96 @@
     <script src="libs/oboe/oboe.min.js"></script>
     <!-- Fabric -->
     <script src="libs/fabric/fabric.js"></script>
-
+    <!-- Histogram Slider -->
+    <script src="libs/jquery-histogram-slider/bootstrap.slider.js"></script>
+    <script src="libs/jquery-histogram-slider/knockout-min.js"></script>
+    <script src="libs/jquery-histogram-slider/bootstrap.histogram.slider.js"></script>
+    <!--<script src="libs/jquery-histogram-slider/histogram.slider.js"></script>-->
 	<!-- DOSA content -->
     <script src = "js/custom_handlers.js"></script>
     <script src = "js/controller.js"></script>
     <script src = "js/jdosa_detailView.js"></script>
-	<script src = "js/main.js"></script>
+	   <script src = "js/main.js"></script>
     
     <!-- Custom Theme Scripts -->
     <script src="js/custom.min.js"></script>
+    <script>
+      var numBins = 40, data = dataFactory(10000, numBins, false);
+
+
+
+        console.log(data);
+        /*
+        $("#histogramSlider").histogramSlider({
+            data: data,
+            sliderRange: [0, 1000000],
+            optimalRange: [0, 300000],
+            selectedRange: [150000, 750000],
+            numberOfBins: numBins, 
+            showTooltips: false,
+            showSelectedRange: false
+        });
+        */
+
+        numBins = 20;
+
+        $("#histogramSlider2").histogramSlider({
+            data: dataFactory(300, numBins, false),
+            sliderRange: [0, 1000000],
+            optimalRange: [0, 1000000],
+            selectedRange: [200000, 750000],
+            numberOfBins: numBins,
+            showSelectedRange: false,
+            showTooltips: false
+        });
+
+        //renderData(data);
+        
+        function dataFactory(itemCount, numberOfBins, group) {
+            var data = { "items": [] };
+
+            for (var i = 0; i < itemCount; i++) {
+                var rnd = Math.floor(Math.random() * numberOfBins) + 1;
+                var rnd2 = Math.floor(Math.random() * 120000);
+                var v = ((1000000 / numberOfBins) - rnd2) * rnd;
+                if (group) {
+                    data.items.push({ "value": v, "count": rnd });
+                } else {
+                    data.items.push({ "value": v });
+                }
+            }
+
+            return data;
+        }
+
+        /*ko.bindingHandlers.slider = {
+          init: function (element, valueAccessor, allBindingsAccessor) {
+            // slideStop event needed for onClick of the slider
+            ko.utils.registerEventHandler(element, "slideStop", function (event) {
+                var observable = valueAccessor();
+                observable(event.value);
+            });
+            ko.utils.registerEventHandler(element, "slide", function (event) {
+                var observable = valueAccessor();
+                observable(event.value);
+            });
+          },
+          update: function (element, valueAccessor) {
+            var value = ko.utils.unwrapObservable(valueAccessor());
+            //console.log(value);
+          }
+        };
+
+
+        var ViewModel = function() {
+            var self = this;
+            self.histoSlider = ko.observable([150000, 750000]);
+            self.range = ko.computed(function() {
+                return self.histoSlider()[0] + " - " + self.histoSlider()[1];
+            });
+        }
+
+        ko.applyBindings(new ViewModel());*/
+    </script>
   </body>
 </html>

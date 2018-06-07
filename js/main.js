@@ -43,6 +43,7 @@ $(function() {
 
     let callback_node_load_complete = function() {
         controller = new Controller(dtView);
+        controller.loadNodeNav();
         dtView.readEdges(EDGES_FILE, $("#detail_progress"), EDGE_ID_COL, SOURCE_NODE_COL, TARGET_NODE_COL);
     };
 
