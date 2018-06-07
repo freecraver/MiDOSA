@@ -227,6 +227,16 @@ class DetailView {
             upHandler(event, _self.sigInst);
         });
 
+        // update canvas size on screen resize
+        $(window).resize(function() {
+            $(".canvas-container").width($SIGMA_SCENE.width());
+            $(".canvas-container").height($SIGMA_SCENE.height());
+            $(".upper-canvas").width($SIGMA_SCENE.width());
+            $(".upper-canvas").height($SIGMA_SCENE.height());
+            $("#selection_canvas").width($SIGMA_SCENE.width());
+            $("#selection_canvas").height($SIGMA_SCENE.height());
+        });
+
     }
 
     /**

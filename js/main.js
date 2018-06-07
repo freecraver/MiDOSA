@@ -11,16 +11,6 @@ const Y_AXIS = "LATITUDE";
 const NODE_ID_COL = "IATA_CODE";
 const USE_WEB_GL = true;
 
-/*let detailGraph;
-let selectionCanvas;
-let rawNodes;
-let rawEdges;
-let sigInst;
-let selectionBoxArr = [];
-let filterArr = [];
-const DETAIL_MIN_VAL = 0; //for scaling
-const DETAIL_MAX_VAL = 1000; //for scaling*/
-
 let dtView;
 let controller;
 
