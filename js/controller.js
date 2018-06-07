@@ -134,13 +134,27 @@ class Controller {
     }
 
     /**
+     * retrieves all edges (outgoing/incoming dependend on current setup) for a supplied node
+     * @param node_id id of the node to be queried
+     * @returns {*} a list of edges without specific order, empty list if id is not known
+     */
+    getEdgesForNodes(node_id) {
+        if (! (node_id in this.edgeDict)) {
+            return [];
+        } else {
+            return this.edgeDict[node_id];
+        }
+    }
+
+    /**
      * checks filter assignments again and updates all related views
      */
     recalcBoxes() {
         let boxNodes = this.getNodesPerBox();
+        let boxEdges = this.getEdgesPerBox(boxNodes);
 
         // update colors of detail view
-        this.detailView.recalcColoring(boxNodes);
+        this.detailView.recalcColoring(boxNodes, boxEdges);
     }
 
     /**
@@ -182,6 +196,53 @@ class Controller {
     }
 
     /**
+     * checks for each box which edges apply to all further filters
+     * checks are performed for all possible features of an edge
+     * all edges that do not met the required restrictions are added to the unmapped
+     * edges of the unmapped nodes
+     *
+     * @return {{mapped *[], unmapped: Array}} mapped: array of array of edges, unmapped: array of all other egdes
+     */
+    getEdgesPerBox(boxNodes) {
+        let _self = this;
+
+        let boxArr = [],
+            i,
+            unmapArr = [];
+
+        // if no boxes are given we retrieve them
+        if (boxNodes === undefined) {
+            boxNodes = this.getNodesPerBox();
+        }
+
+        // check all edges for each node box
+        for (i=0; i<boxNodes.mapped.length;i++) {
+            //init new array
+            boxArr[i] = [];
+
+            // check for each edge if it violates any edge-filters
+            boxNodes.mapped[i].forEach(function(node){
+                _self.getEdgesForNodes(node.id).forEach(function(edge){
+                    if(_self.filterArr[i].fitsForEdge(edge)) {
+                        boxArr[i].push(edge);
+                    } else {
+                        unmapArr.push(edge);
+                    };
+                });
+            });
+        }
+
+        // push all egdes of all unmapped nodes to the new 'unmapped' array
+        boxNodes.unmapped.forEach(function(node){
+            _self.getEdgesForNodes(node.id).forEach(function(edge){
+                unmapArr.push(edge);
+            });
+        });
+
+        return {mapped:boxArr, unmapped:unmapArr};
+    }
+
+    /**
      * returns a list of the specified filter colors in the respective order
      * @returns {any[]}
      */
@@ -193,6 +254,7 @@ class Controller {
 class Filter {
     constructor(filterArr, markingColor){
         this.nodeFilterMap = new Map();
+        this.edgeFilterMap = new Map();
         this.markingColor = markingColor;
         filterArr.forEach(function(el){
             this.nodeFilterMap.set(el.feature, el.boundary);
@@ -211,6 +273,26 @@ class Filter {
             let boundary = this.nodeFilterMap.get(feature);
             if (boundary.min > node[feature] || boundary.max < node[feature]) {
                 // node outside of this filter
+                return false;
+            }
+        }
+
+        // all checks passed - this node is within the multidimensional feature box
+        return true;
+    }
+
+    /**
+     * Multi-dimensional filtering
+     * checks if a given edge is within the boundaries of each feature (dimension)
+     *
+     * @param edge edge to be checked
+     * @returns {boolean} true, if no boundary is violated for the edge
+     */
+    fitsForEdge(edge) {
+        for (let feature of this.edgeFilterMap.keys()) {
+            let boundary = this.edgeFilterMap.get(feature);
+            if (boundary.min > edge[feature] || boundary.max < edge[feature]) {
+                // edge does not match criteria
                 return false;
             }
         }

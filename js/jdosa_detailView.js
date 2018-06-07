@@ -11,6 +11,7 @@ class DetailView {
         this.x_axis = undefined;
         this.y_axis = undefined;
         this.scalingParamMap = new Map();
+        this.showAllEdges = false;
     }
 
     /**
@@ -37,7 +38,6 @@ class DetailView {
             settings: {
                 minNodeSize: 1,
                 maxNodeSize: 1,
-                drawEdges: false,
                 minArrowSize: 4,
                 zoomMin: 0.1,
                 autoRescale: false,
@@ -48,11 +48,11 @@ class DetailView {
         // hide/show detail view on collapse click (fix for sigma.js)
         $("#" + panel_id + " .collapse-link").click(function(){ $("#" + container_id).toggle();});
 
-        // hide/show edges on eye click
+        // hide/show unmapped edges on eye click
         $("#" + panel_id + " .edge_toggle").click(function() {
             $("#" + panel_id + " .edge_toggle > i").toggleClass('fa-eye fa-eye-slash');
-            _self.sigInst.settings("drawEdges", !_self.sigInst.settings("drawEdges")); //toggle
-            _self.sigInst.refresh({ skipIndexation: true });
+            _self.showAllEdges = ! _self.showAllEdges;
+            controller.recalcBoxes();
         });
 
         // add new selection box on click
@@ -140,6 +140,7 @@ class DetailView {
                 edge.id = edge[edge_id_col];
                 edge.source = edge[source_node_col];
                 edge.target = edge[target_node_col];
+                edge.hidden = !_self.showAllEdges;
                 rawEdges.push(edge);
                 graph.addEdge(edge);
                 if (edgeCnt++ % 987 == 0){
@@ -149,7 +150,7 @@ class DetailView {
             })
             .done(function(json){
                 progress_div.remove();
-                controller.buildEdgeDict(rawEdges);
+                controller.buildEdgeDict(_self.sigInst.camera.graph.edges());
                 _self.sigInst.refresh();
             });
     }
@@ -226,6 +227,16 @@ class DetailView {
             upHandler(event, _self.sigInst);
         });
 
+        // update canvas size on screen resize
+        $(window).resize(function() {
+            $(".canvas-container").width($SIGMA_SCENE.width());
+            $(".canvas-container").height($SIGMA_SCENE.height());
+            $(".upper-canvas").width($SIGMA_SCENE.width());
+            $(".upper-canvas").height($SIGMA_SCENE.height());
+            $("#selection_canvas").width($SIGMA_SCENE.width());
+            $("#selection_canvas").height($SIGMA_SCENE.height());
+        });
+
     }
 
     /**
@@ -289,11 +300,24 @@ class DetailView {
     }
 
     /**
+     * colors all mapped nodes and edges to the respective color of the filter
+     *
+     * @param nodeBoxResult result of filter search [containing 'mapped' & 'unmapped' nodes]
+     * @param edgeBoxResult result of filter search [containing 'mapped' & 'unmapped' edges]
+     */
+    recalcColoring(nodeBoxResult, edgeBoxResult) {
+        this.recalcNodeColoring(nodeBoxResult);
+        // change coloring & refresh graph
+        this.recalcEdgeColoring(edgeBoxResult, true);
+    }
+
+    /**
      * colors all mapped nodes to the respective color of the filter
      *
      * @param boxResult result of filter search [containing 'mapped' & 'unmapped' nodes]
+     * @param refresh if true the sigma graph is updated
      */
-    recalcColoring(boxResult) {
+    recalcNodeColoring(boxResult, refresh=false) {
         let colorArr = controller.getFilterColors();
         let _self = this;
 
@@ -313,7 +337,42 @@ class DetailView {
             node.color = nodeColor;
         });
 
-        _self.sigInst.refresh({ skipIndexation: true });
+        if (refresh) {
+            _self.sigInst.refresh({skipIndexation: true});
+        }
+    }
+
+    /**
+     * colors all mapped edges to the respective color of the filter
+     *
+     * @param boxResult result of filter search [containing 'mapped' & 'unmapped' edges]
+     * @param refresh if true the sigma graph is updated
+     */
+    recalcEdgeColoring(boxResult, refresh=false) {
+        let colorArr = controller.getFilterColors();
+        let _self = this;
+
+        // color all matched nodes
+        for (let i = 0; i< boxResult.mapped.length; i++) {
+            let curColor = colorArr[i];
+            boxResult.mapped[i].forEach(function(edge) {
+                edge.hidden = false;
+                edge.color = curColor;
+            });
+        }
+
+        // if we've made a selection color other edges grey
+        let edgeColor = (boxResult.mapped.length > 0 ? 'rgb(224,224,224)' : _self.sigInst.settings('defaultNodeColor'));
+
+        // hide or mark all unmatched edges
+        boxResult.unmapped.forEach(function(edge) {
+            edge.hidden = !_self.showAllEdges;
+            edge.color = edgeColor;
+        });
+
+        if (refresh) {
+            _self.sigInst.refresh({skipIndexation: true});
+        }
     }
 
     /**
