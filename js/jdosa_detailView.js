@@ -208,8 +208,8 @@ class DetailView {
                 let featureCoord = _self.getFeatureCoordinatesFromSigma(sigmaCoord);
 
                 // notify controller
-                controller.updateFilter(filterIdx, _self.x_axis, {min: featureCoord.x1, max:featureCoord.x2});
-                controller.updateFilter(filterIdx, _self.y_axis, {min: featureCoord.y1, max:featureCoord.y2});
+                controller.updateFilter(filterIdx, _self.x_axis, {min: featureCoord.x1, max:featureCoord.x2}, false);
+                controller.updateFilter(filterIdx, _self.y_axis, {min: featureCoord.y1, max:featureCoord.y2}, false);
             }
         });
         _self.selectionCanvas.on('mouse:up', function(opt) {
@@ -376,6 +376,45 @@ class DetailView {
     }
 
     /**
+     *  Change selection boxes in detail view according to supplied filters
+     *  This can be used to keep selection boxes up to date with filter changes
+     *  from outside
+     *
+     * @param idx index of the rectangle to be changed
+     * @param nodeFilterMap all node filters of the related filter
+     */
+    recalcSelectionBoxes(idx, nodeFilterMap) {
+        let x_min = -99999,
+            x_max = 999999,
+            y_min = -99999,
+            y_max = 999999;
+
+        if (nodeFilterMap.has(this.x_axis)) {
+            let boundary = nodeFilterMap.get(this.x_axis);
+            x_min = boundary.min;
+            x_max = boundary.max;
+        }
+
+        if (nodeFilterMap.has(this.y_axis )) {
+            let boundary = nodeFilterMap.get(this.y_axis);
+            y_min = boundary.min;
+            y_max = boundary.max;
+        }
+
+        let sigmaRectangle = this.getSigmaCoordinatesFromFeature({x1:x_min, x2:x_max, y1:y_min, y2:y_max});
+        let fabricRectangle = this.getFabricRectangleFromSigmaCoordinates(sigmaRectangle);
+
+        // update rectangle size
+        let recToChange = this.selectionBoxArr[idx];
+        recToChange.left = fabricRectangle.left;
+        recToChange.top = fabricRectangle.top;
+        recToChange.width = fabricRectangle.width;
+        recToChange.height = fabricRectangle.height;
+
+        this.selectionCanvas.renderAll()
+    }
+
+    /**
      * translate from fabric canvas coordinates to sigma coordinates
      *
      * @param fbSelectionRectangle
@@ -406,6 +445,36 @@ class DetailView {
     }
 
     /**
+     * translate from sigma coordinates to fabric rectangle
+     *
+     * @param sigmaCoordinates
+     * @returns {{x1: number, x2: number, y1: number, y2: number}}
+     */
+    getFabricRectangleFromSigmaCoordinates(sigmaCoordinates) {
+        let sigRectangle = this.sigInst.camera.getRectangle(this.sigInst.renderers[0].width, this.sigInst.renderers[0].height);
+        let fbRectangle = this.selectionCanvas.calcViewportBoundaries();
+        let fbWidth = fbRectangle.tr.x - fbRectangle.tl.x,
+            fbHeight = fbRectangle.bl.y - fbRectangle.tl.y,
+            sigWidth = sigRectangle.x2 - sigRectangle.x1,
+            sigHeight = sigRectangle.height;
+
+        // calculate proportional distance within sigma space
+        let x_min_prop = (sigmaCoordinates.x1 - sigRectangle.x1) / sigWidth,
+            x_max_prop = (sigmaCoordinates.x2 - sigRectangle.x1) / sigWidth,
+            y_min_prop = (sigmaCoordinates.y1 - sigRectangle.y1) / sigHeight,
+            y_max_prop = (sigmaCoordinates.y2 - sigRectangle.y1) / sigHeight;
+
+
+        // return rectangle fitted to zoomed and panned fabric space
+        return {
+            left: fbRectangle.tl.x + x_min_prop * fbWidth,
+            top: fbRectangle.tl.y + y_min_prop * fbHeight,
+            width: fbRectangle.tl.x + x_max_prop * fbWidth - (fbRectangle.tl.x + x_min_prop * fbWidth),
+            height: fbRectangle.tl.y + y_max_prop * fbHeight - (fbRectangle.tl.y + y_min_prop * fbHeight)
+        };
+    }
+
+    /**
      * Translates sigma coordinates to feature coordinates by applying un/re-scaling
      * @param sigmaRectangle rectangle of sigma coordinates
      *
@@ -416,6 +485,27 @@ class DetailView {
             x2 = this.getUnscaled(sigmaRectangle.x2, this.x_axis),
             y1 = this.getUnscaled(sigmaRectangle.y1, this.y_axis),
             y2 = this.getUnscaled(sigmaRectangle.y2, this.y_axis);
+
+        // return min/max as left-most variable does not need to be the biggest (lat/lng)
+        return {
+            x1: Math.min(x1, x2),
+            x2: Math.max(x1, x2),
+            y1: Math.min(y1, y2),
+            y2: Math.max(y1, y2)
+        };
+    }
+
+    /**
+     * Translates feature coordinates to sigma coordinates by applying scaling
+     * @param featureRectangle rectangle of feature coordinates
+     *
+     * @returns {{x1: number, x2: number, y1: number, y2: number}}
+     */
+    getSigmaCoordinatesFromFeature(featureRectangle) {
+        let x1 = this.getScaled(featureRectangle.x1, this.x_axis),
+            x2 = this.getScaled(featureRectangle.x2, this.x_axis),
+            y1 = this.getScaled(featureRectangle.y1, this.y_axis),
+            y2 = this.getScaled(featureRectangle.y2, this.y_axis);
 
         // return min/max as left-most variable does not need to be the biggest (lat/lng)
         return {

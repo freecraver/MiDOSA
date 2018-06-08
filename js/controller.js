@@ -118,9 +118,17 @@ class Controller {
      * @param idx index of filter to be changed
      * @param feature feature-space to be changed
      * @param boundaries min-max of feature to be changed
+     * @param updateSelections if true, rectangles of detail view are updated
      */
-    updateFilter(idx, feature, boundaries) {
+    updateFilter(idx, feature, boundaries, updateSelections = true) {
         this.filterArr[idx].nodeFilterMap.set(feature, boundaries);
+
+        if (updateSelections) {
+            // only executed if flag is set
+            // this ensures that selection box resizing does not trigger another resize of the changed box
+            this.detailView.recalcSelectionBoxes(idx, this.filterArr[idx].nodeFilterMap);
+        }
+
         this.recalcBoxes();
     }
 
