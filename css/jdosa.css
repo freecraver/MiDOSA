@@ -59,3 +59,38 @@ a:hover .tooltiptext {
     visibility: visible;
     opacity: 1;
 }
+
+#filter-menu {
+    padding-top:20px;
+    border-top: 2px solid;
+    bottom: 0;
+    min-height: 200px;
+    width: 100%;
+    overflow: auto;
+}
+
+.input-group-addon {
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    border: 3px solid #eeeeee !important;
+    border-radius: 3px !important;
+}
+
+.selection_entry {
+    color: #E7E7E7;
+    font-weight: 500;
+    margin: 20px;
+    text-shadow: 1px 1px #000;
+    clear: both;
+    border-top: 1px dashed #bfbfbf;
+    padding-top: 10px;
+}
+
+.selection_entry p {
+    float:left;
+}
+
+.selection_entry .colorpicker-component {
+    float:right;
+}

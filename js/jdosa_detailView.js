@@ -391,6 +391,19 @@ class DetailView {
     }
 
     /**
+     * changes the color for a selection rectangle
+     *
+     * @param idx index of the respective selection rectangle
+     * @param color new color for the selection rectangle
+     */
+    setSelectionColor(idx, color) {
+        this.selectionBoxArr[idx].stroke = color;
+        this.selectionBoxArr[idx].dirty = true;
+
+        this.selectionCanvas.renderAll();
+    }
+
+    /**
      * colors all mapped nodes and edges to the respective color of the filter
      *
      * @param nodeBoxResult result of filter search [containing 'mapped' & 'unmapped' nodes]
@@ -683,3 +696,54 @@ class DetailView {
     }
 
 };
+
+
+class FilterPanel{
+
+    constructor(selectionPanelId) {
+        this.selectionPanelId = selectionPanelId;
+        this.cnt = 0;
+        this.idMap = [];
+    }
+
+    /**
+     * adds a new filter to the filter panel
+     *
+     * @param filterIdx index of the new filter
+     * @param filterColor color of the new filter
+     */
+    addFilter(filterIdx, filterColor){
+        let idx = this.cnt++;
+        this.idMap[filterIdx] = idx;
+        let divId = 'selection_entry_' + idx;
+        let colorPickerId = 'color_picker_' + idx;
+
+        let newDiv = "<div class='selection_entry' id='" + divId + "'>";
+        newDiv += "<p>Filter " + (idx + 1) + "</p>";
+        newDiv += "<div id='" + colorPickerId +"' class='input-group colorpicker-component'>"
+        newDiv += "<span class='input-group-addon'><i></i></span>";
+        newDiv += "</div>";
+        newDiv += "</div>";
+        $("#"+this.selectionPanelId).append(newDiv);
+        $("#"+ colorPickerId).colorpicker({
+            color: filterColor,
+            useAlpha: false
+        }).on('changeColor', function (e) {
+            controller.updateFilterColor(filterIdx, e.color);
+        });
+    }
+
+    /**
+     * removes a filter panel
+     *
+     * @param filterIdx index of the panel to be removed
+     */
+    removeFilter(filterIdx) {
+        let idx = this.idMap[filterIdx];
+        let divId = 'selection_entry_' + idx;
+        $("#"+divId).remove();
+        // all following filters have to be set one position below
+        this.idMap.splice(filterIdx,1);
+    }
+
+}

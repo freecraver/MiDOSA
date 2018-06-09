@@ -7,6 +7,7 @@ class Controller {
         this.nodes = detailView.sigInst.camera.graph.nodes();
         this.edgeDict = undefined;
         this.detailView = detailView;
+        this.filterPanel = new FilterPanel('selection-panel');
         this.useOutgoingEdges = true;
     }
 
@@ -117,6 +118,7 @@ class Controller {
      */
     addFilter(filter){
         this.filterArr.push(filter);
+        this.filterPanel.addFilter(this.filterArr.length - 1, this.filterArr[this.filterArr.length-1].markingColor);
         this.recalcBoxes();
     }
 
@@ -141,11 +143,25 @@ class Controller {
     }
 
     /**
+     * updates color of rectangle, nodes and edges
+     *
+     * @param idx index of filter to be changed
+     * @param color new color for the respective filter
+     */
+    updateFilterColor(idx, color) {
+        this.filterArr[idx].markingColor = color;
+
+        this.recalcBoxes();
+        this.detailView.setSelectionColor(idx, color);
+    }
+
+    /**
      *  removes a filter at a given index
      * @param idx
      */
     removeFilter(idx) {
         this.filterArr.splice(idx,1);
+        this.filterPanel.removeFilter(idx);
         this.recalcBoxes();
     }
 
