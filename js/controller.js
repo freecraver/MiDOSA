@@ -166,6 +166,17 @@ class Controller {
     }
 
     /**
+     * updates all selection boxes of the detail view
+     * this is useful if the active dimension for detail view changes
+     */
+    recalcSelectionBoxes(){
+        let i;
+        for (i=0; i< this.filterArr.length; i++) {
+            this.detailView.recalcSelectionBoxes(i, this.filterArr[i].nodeFilterMap);
+        }
+    }
+
+    /**
      * checks for each node to which filter it belongs to
      * checks are performed multidimensional (against all possible features)
      * every node is in max 1 single box

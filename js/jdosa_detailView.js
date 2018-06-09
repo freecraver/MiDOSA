@@ -99,6 +99,8 @@ class DetailView {
             .done(function(json){
                 let rawNodes = json; //load data
 
+                _self.initDimensionSwitcher(rawNodes[0]);
+
                 // get scaling parameter from raw data (we don't have sigma nodes at this point)
                 _self.fetchScalingParams(x_axis, rawNodes);
                 _self.fetchScalingParams(y_axis, rawNodes);
@@ -237,6 +239,87 @@ class DetailView {
             $("#selection_canvas").height($SIGMA_SCENE.height());
         });
 
+    }
+
+    /**
+     * inits detail-view box toggle
+     * enables users to switch dimensions
+     * @param node node used to check available dimensions
+     */
+    initDimensionSwitcher(node){
+        // get all keys
+        let keys = Object.keys(node);
+        let _self = this;
+
+        for (let i = 0; i < keys.length; i++) {
+            let val = node[keys[i]];
+
+            // only numeric values for detail graph
+            if (isNaN(val)) {
+                continue;
+            }
+
+            $("#y_axis_selector ul").append('<li><a id="y_axis_sel_' + keys[i] +'">' + keys[i] + '</a></li>');
+            $("#y_axis_sel_" + keys[i]).on('click', function (event) {
+                $("#y_axis_sel_" + keys[i]).addClass("active");
+                $("#y_axis_sel_" + _self.y_axis).removeClass("active");
+                _self.setYDimension(keys[i]);
+            });
+            $("#x_axis_selector ul").append('<li><a id="x_axis_sel_' + keys[i] +'">' + keys[i] + '</a></li>');
+            $("#x_axis_sel_" + keys[i]).on('click', function (event) {
+                $("#x_axis_sel_" + keys[i]).addClass("active");
+                $("#x_axis_sel_" + _self.x_axis).removeClass("active");
+                _self.setXDimension(keys[i]);
+            });
+        }
+
+        // set currently active selection
+        $("#x_axis_sel_" + _self.x_axis).addClass("active");
+        $("#y_axis_sel_" + _self.y_axis).addClass("active");
+    }
+
+    /**
+     * sets the active x-dimension for the detail view
+     * changes the positions of all nodes and selection boxes
+     *
+     * @param feature_name feature to be used as new x-axis
+     */
+    setXDimension(feature_name){
+        let _self = this;
+
+        _self.x_axis = feature_name;
+
+        // update all node positions
+        _self.sigInst.camera.graph.nodes().forEach(function(node){
+            node.x = _self.getScaled(node[feature_name], feature_name);
+        });
+
+        _self.sigInst.refresh();
+
+        // update selection boxes
+        controller.recalcSelectionBoxes();
+    }
+
+    /**
+     * sets the active y-dimension for the detail view
+     * changes the positions of all nodes and selection boxes
+     *
+     * @param feature_name feature to be used as new y-axis
+     */
+    setYDimension(feature_name){
+        let _self = this;
+
+        _self.y_axis = feature_name;
+
+        // update all node positions
+        _self.sigInst.camera.graph.nodes().forEach(function(node){
+            node.y = _self.getScaled(node[feature_name], feature_name);
+        });
+
+        _self.sigInst.refresh();
+
+        // update selection boxes
+        controller.recalcSelectionBoxes();
     }
 
     /**
