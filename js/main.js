@@ -9,7 +9,7 @@ const EDGE_ID_COL = "EDGE_ID";
 const X_AXIS = "LONGITUDE";
 const Y_AXIS = "LATITUDE";
 const NODE_ID_COL = "IATA_CODE";
-const USE_WEB_GL = true;
+const USE_WEB_GL = false;
 
 let dtView;
 let ovView;

@@ -58,6 +58,14 @@ class DetailView {
         // add new selection box on click
         $("#" + panel_id + " .add_selection").click(function (){_self.addSelection(_self);});
 
+        // change incoming/outgoing edges on click
+        $("#" + panel_id + " .change_edge_dir").click(function (){
+            controller.useOutgoingEdges = !controller.useOutgoingEdges;
+            controller.buildEdgeDict(_self.sigInst.camera.graph.edges());
+            controller.recalcBoxes();
+            _self.sigInst.refresh({skipIndexation: true});
+        });
+
         // key binder
         $(document).keydown(function(e) {
             switch(e.which) {

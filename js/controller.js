@@ -7,6 +7,7 @@ class Controller {
         this.nodes = detailView.sigInst.camera.graph.nodes();
         this.edgeDict = undefined;
         this.detailView = detailView;
+        this.useOutgoingEdges = true;
     }
 
 
@@ -95,10 +96,17 @@ class Controller {
         _self.edgeDict = {};
 
         edges.forEach(function(edge) {
-            if (! (edge.source in _self.edgeDict)) {
-                _self.edgeDict[edge.source] = [];
+            if (_self.useOutgoingEdges) {
+                if (!(edge.source in _self.edgeDict)) {
+                    _self.edgeDict[edge.source] = [];
+                }
+                _self.edgeDict[edge.source].push(edge);
+            } else {
+                if (!(edge.target in _self.edgeDict)) {
+                    _self.edgeDict[edge.target] = [];
+                }
+                _self.edgeDict[edge.target].push(edge);
             }
-            _self.edgeDict[edge.source].push(edge);
         });
     }
 
