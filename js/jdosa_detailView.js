@@ -410,8 +410,10 @@ class DetailView {
         recToChange.top = fabricRectangle.top;
         recToChange.width = fabricRectangle.width;
         recToChange.height = fabricRectangle.height;
+        // tell fabric to redraw border
+        recToChange.dirty = true;
 
-        this.selectionCanvas.renderAll()
+        this.selectionCanvas.renderAll();
     }
 
     /**
