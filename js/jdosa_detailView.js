@@ -713,12 +713,15 @@ class FilterPanel{
      * @param filterColor color of the new filter
      */
     addFilter(filterIdx, filterColor){
+        let _self = this;
         let idx = this.cnt++;
         this.idMap[filterIdx] = idx;
         let divId = 'selection_entry_' + idx;
         let colorPickerId = 'color_picker_' + idx;
 
         let newDiv = "<div class='selection_entry' id='" + divId + "'>";
+        newDiv += "<div class='selection_mover'><div><a class='selection_up'><i class='fa fa-chevron-up'></i></a></div>" +
+            "<div class='selection_mover'><a class='selection_down'><i class='fa fa-chevron-down'></i></a></div></div>";
         newDiv += "<p>Filter " + (idx + 1) + "</p>";
         newDiv += "<div id='" + colorPickerId +"' class='input-group colorpicker-component'>"
         newDiv += "<span class='input-group-addon'><i></i></span>";
@@ -731,6 +734,59 @@ class FilterPanel{
         }).on('changeColor', function (e) {
             controller.updateFilterColor(filterIdx, e.color);
         });
+
+        // add up/move-handler
+        $("#"+divId + " .selection_up").on('mouseup', function(e){
+            // fetch currently assigned filter index (this might change bc of remove/move)
+            let mappedFilterIdx = _self.getFilterIdxFromIdMap(idx);
+            controller.moveFilter(mappedFilterIdx, true);
+        });
+        $("#"+divId + " .selection_down").on('mouseup', function(e){
+            // fetch currently assigned filter index (this might change bc of remove/move)
+            let mappedFilterIdx = _self.getFilterIdxFromIdMap(idx);
+            controller.moveFilter(mappedFilterIdx, false);
+        });
+    }
+
+    /**
+     * switches filter panels that are next to each other
+     * order of supplied filters is irrelevant
+     * @param filterIdx1 index of a filter
+     * @param filterIdx2 index of a filter
+     */
+    switchFilterPanels(filterIdx1, filterIdx2){
+        let panelId1 = this.idMap[filterIdx1];
+        let panelId2 = this.idMap[filterIdx2];
+
+        let newTopPanel = panelId1,
+            newBottomPanel = panelId2;
+
+        // switch in other direction
+        if (filterIdx1 < filterIdx2) {
+            newTopPanel = panelId2;
+            newBottomPanel = panelId1;
+        }
+
+        // switch divs
+        $("#selection_entry_"+newTopPanel).insertBefore($("#selection_entry_"+newBottomPanel));
+
+        // switch idMap entries
+        this.idMap[filterIdx2] = panelId1;
+        this.idMap[filterIdx1] = panelId2;
+    }
+
+    /**
+     * retrieves the set filterId for a given panel id (reverse-lookup)
+     * @param id id of the panel
+     * @return {number} index of the filter, or -1 if no such exists
+     */
+    getFilterIdxFromIdMap(id) {
+        for (let i=0; i < this.idMap.length; i++) {
+            if (this.idMap[i] == id) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**

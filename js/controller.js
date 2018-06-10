@@ -112,6 +112,33 @@ class Controller {
     }
 
     /**
+     * moves a filter higher or lower in order
+     *
+     * @param filterIdx current index of the filter
+     * @param isUpwards if true, index is reduced (upwards in sight)
+     * @return the new index of the changed filter
+     */
+    moveFilter(filterIdx, isUpwards) {
+        let newIdx = isUpwards ? filterIdx-1 : filterIdx+1;
+
+        if (newIdx < 0 || newIdx >= this.filterArr.length) {
+            // illegal change
+            return filterIdx;
+        }
+
+        let switchFilter = this.filterArr[newIdx];
+        this.filterArr[newIdx] = this.filterArr[filterIdx];
+        this.filterArr[filterIdx] = switchFilter;
+
+        // update filter panel
+        this.filterPanel.switchFilterPanels(filterIdx, newIdx);
+        // update detail view
+        this.recalcBoxes();
+
+        return newIdx;
+    }
+
+    /**
      * add a new filter
      *
      * @param filter filter to be added

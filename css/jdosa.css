@@ -94,3 +94,17 @@ a:hover .tooltiptext {
 .selection_entry .colorpicker-component {
     float:right;
 }
+
+.selection_mover {
+    float:left;
+    margin-top: -6px;
+}
+
+.selection_mover .fa {
+    font-size: 12px;
+    margin-left: 5px;
+    color: #bcccd8;
+    cursor: pointer;
+    width: auto;
+    margin-right: 10px;
+}
