@@ -1,4 +1,32 @@
-"use strict";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: jdosa_detailView.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: jdosa_detailView.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
 
 /**
  * used to handle everything related to the detailed view
@@ -266,7 +294,7 @@ class DetailView {
         let keys = Object.keys(node);
         let _self = this;
 
-        for (let i = 0; i < keys.length; i++) {
+        for (let i = 0; i &lt; keys.length; i++) {
             let val = node[keys[i]];
 
             // only numeric values for detail graph
@@ -274,13 +302,13 @@ class DetailView {
                 continue;
             }
 
-            $("#y_axis_selector ul").append('<li><a id="y_axis_sel_' + keys[i] +'">' + keys[i] + '</a></li>');
+            $("#y_axis_selector ul").append('&lt;li>&lt;a id="y_axis_sel_' + keys[i] +'">' + keys[i] + '&lt;/a>&lt;/li>');
             $("#y_axis_sel_" + keys[i]).on('click', function (event) {
                 $("#y_axis_sel_" + keys[i]).addClass("active");
                 $("#y_axis_sel_" + _self.y_axis).removeClass("active");
                 _self.setYDimension(keys[i]);
             });
-            $("#x_axis_selector ul").append('<li><a id="x_axis_sel_' + keys[i] +'">' + keys[i] + '</a></li>');
+            $("#x_axis_selector ul").append('&lt;li>&lt;a id="x_axis_sel_' + keys[i] +'">' + keys[i] + '&lt;/a>&lt;/li>');
             $("#x_axis_sel_" + keys[i]).on('click', function (event) {
                 $("#x_axis_sel_" + keys[i]).addClass("active");
                 $("#x_axis_sel_" + _self.x_axis).removeClass("active");
@@ -413,19 +441,19 @@ class DetailView {
     /**
      * colors all mapped nodes and edges to the respective color of the filter
      *
-     * @param nodeBoxResult result of filter search [containing 'mapped' & 'unmapped' nodes]
-     * @param edgeBoxResult result of filter search [containing 'mapped' & 'unmapped' edges]
+     * @param nodeBoxResult result of filter search [containing 'mapped' &amp; 'unmapped' nodes]
+     * @param edgeBoxResult result of filter search [containing 'mapped' &amp; 'unmapped' edges]
      */
     recalcColoring(nodeBoxResult, edgeBoxResult) {
         this.recalcNodeColoring(nodeBoxResult);
-        // change coloring & refresh graph
+        // change coloring &amp; refresh graph
         this.recalcEdgeColoring(edgeBoxResult, true);
     }
 
     /**
      * colors all mapped nodes to the respective color of the filter
      *
-     * @param boxResult result of filter search [containing 'mapped' & 'unmapped' nodes]
+     * @param boxResult result of filter search [containing 'mapped' &amp; 'unmapped' nodes]
      * @param refresh if true the sigma graph is updated
      */
     recalcNodeColoring(boxResult, refresh=false) {
@@ -433,7 +461,7 @@ class DetailView {
         let _self = this;
 
         // color all matched nodes
-        for (let i = 0; i< boxResult.mapped.length; i++) {
+        for (let i = 0; i&lt; boxResult.mapped.length; i++) {
             let curColor = colorArr[i];
             boxResult.mapped[i].forEach(function(node) {
                 node.color = curColor;
@@ -456,7 +484,7 @@ class DetailView {
     /**
      * colors all mapped edges to the respective color of the filter
      *
-     * @param boxResult result of filter search [containing 'mapped' & 'unmapped' edges]
+     * @param boxResult result of filter search [containing 'mapped' &amp; 'unmapped' edges]
      * @param refresh if true the sigma graph is updated
      */
     recalcEdgeColoring(boxResult, refresh=false) {
@@ -464,7 +492,7 @@ class DetailView {
         let _self = this;
 
         // color all matched nodes
-        for (let i = 0; i< boxResult.mapped.length; i++) {
+        for (let i = 0; i&lt; boxResult.mapped.length; i++) {
             let curColor = colorArr[i];
             boxResult.mapped[i].forEach(function(edge) {
                 edge.hidden = false;
@@ -734,14 +762,14 @@ class FilterPanel{
         let divId = 'selection_entry_' + idx;
         let colorPickerId = 'color_picker_' + idx;
 
-        let newDiv = "<div class='selection_entry' id='" + divId + "'>";
-        newDiv += "<div class='selection_mover'><div><a class='selection_up'><i class='fa fa-chevron-up'></i></a></div>" +
-            "<div class='selection_mover'><a class='selection_down'><i class='fa fa-chevron-down'></i></a></div></div>";
-        newDiv += "<p>Filter " + (idx + 1) + "</p>";
-        newDiv += "<div id='" + colorPickerId +"' class='input-group colorpicker-component'>"
-        newDiv += "<span class='input-group-addon'><i></i></span>";
-        newDiv += "</div>";
-        newDiv += "</div>";
+        let newDiv = "&lt;div class='selection_entry' id='" + divId + "'>";
+        newDiv += "&lt;div class='selection_mover'>&lt;div>&lt;a class='selection_up'>&lt;i class='fa fa-chevron-up'>&lt;/i>&lt;/a>&lt;/div>" +
+            "&lt;div class='selection_mover'>&lt;a class='selection_down'>&lt;i class='fa fa-chevron-down'>&lt;/i>&lt;/a>&lt;/div>&lt;/div>";
+        newDiv += "&lt;p>Filter " + (idx + 1) + "&lt;/p>";
+        newDiv += "&lt;div id='" + colorPickerId +"' class='input-group colorpicker-component'>"
+        newDiv += "&lt;span class='input-group-addon'>&lt;i>&lt;/i>&lt;/span>";
+        newDiv += "&lt;/div>";
+        newDiv += "&lt;/div>";
         $("#"+this.selectionPanelId).append(newDiv);
         $("#"+ colorPickerId).colorpicker({
             color: filterColor,
@@ -777,7 +805,7 @@ class FilterPanel{
             newBottomPanel = panelId2;
 
         // switch in other direction
-        if (filterIdx1 < filterIdx2) {
+        if (filterIdx1 &lt; filterIdx2) {
             newTopPanel = panelId2;
             newBottomPanel = panelId1;
         }
@@ -796,7 +824,7 @@ class FilterPanel{
      * @return {number} index of the filter, or -1 if no such exists
      */
     getFilterIdxFromIdMap(id) {
-        for (let i=0; i < this.idMap.length; i++) {
+        for (let i=0; i &lt; this.idMap.length; i++) {
             if (this.idMap[i] == id) {
                 return i;
             }
@@ -817,4 +845,26 @@ class FilterPanel{
         this.idMap.splice(filterIdx,1);
     }
 
-}
+}</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Controller.html">Controller</a></li><li><a href="DetailView.html">DetailView</a></li><li><a href="FilterPanel.html">FilterPanel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#clickHandler">clickHandler</a></li><li><a href="global.html#CURRENT_URL">CURRENT_URL</a></li><li><a href="global.html#downHandler">downHandler</a></li><li><a href="global.html#moveHandler">moveHandler</a></li><li><a href="global.html#translateZoom">translateZoom</a></li><li><a href="global.html#upHandler">upHandler</a></li><li><a href="global.html#wheelHandler">wheelHandler</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Jun 11 2018 20:07:15 GMT+0200 (Mitteleuropäische Sommerzeit)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
