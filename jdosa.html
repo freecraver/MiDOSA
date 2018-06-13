@@ -71,69 +71,14 @@
                       </li>
                     </ul>
                     <div id="myTabContent" class="tab-content">
-                      <div role="tabpanel" class="tab-pane fade" id="nav_nodes_content" aria-labelledby="nodes-tab">
-
+                      <div role="tabpanel" class="tab-pane fade" id="nav_nodes_content" aria-labelledby="nodes-tab" style="height:50% !important;">
                         <div id="histogramSlider" data-bind="slider: histoSlider"></div>
-
-
-
-
-                        
-                        
-
                       </div>
-                      
-                      <div role="tabpanel" class="tab-pane fade active in" id="nav_edges_content" aria-labelledby="edges-tab">
-                        <p>edges</p>
-                        
+                      <div role="tabpanel" class="tab-pane fade active in" id="nav_edges_content" aria-labelledby="edges-tab" style="height:400px !important; overflow-y: scroll;">
                       </div>
                     </div>
                   </div>
                 </div>
-
-
-              </div>
-              <div class="menu_section">
-                <h3>Live On</h3>
-                <ul class="nav side-menu">
-                  <li><a><i class="fa fa-bug"></i> Additional Pages <span class="fa fa-chevron-down"></span></a>
-                    <ul class="nav child_menu">
-                      <li><a href="e_commerce.html">E-commerce</a></li>
-                      <li><a href="projects.html">Projects</a></li>
-                      <li><a href="project_detail.html">Project Detail</a></li>
-                      <li><a href="contacts.html">Contacts</a></li>
-                      <li><a href="profile.html">Profile</a></li>
-                    </ul>
-                  </li>
-                  <li><a><i class="fa fa-windows"></i> Extras <span class="fa fa-chevron-down"></span></a>
-                    <ul class="nav child_menu">
-                      <li><a href="page_403.html">403 Error</a></li>
-                      <li><a href="page_404.html">404 Error</a></li>
-                      <li><a href="page_500.html">500 Error</a></li>
-                      <li><a href="plain_page.html">Plain Page</a></li>
-                      <li><a href="login.html">Login Page</a></li>
-                      <li><a href="pricing_tables.html">Pricing Tables</a></li>
-                    </ul>
-                  </li>
-                  <li><a><i class="fa fa-sitemap"></i> Multilevel Menu <span class="fa fa-chevron-down"></span></a>
-                    <ul class="nav child_menu">
-                        <li><a href="#level1_1">Level One</a>
-                        <li><a>Level One<span class="fa fa-chevron-down"></span></a>
-                          <ul class="nav child_menu">
-                            <li class="sub_menu"><a href="level2.html">Level Two</a>
-                            </li>
-                            <li><a href="#level2_1">Level Two</a>
-                            </li>
-                            <li><a href="#level2_2">Level Two</a>
-                            </li>
-                          </ul>
-                        </li>
-                        <li><a href="#level1_2">Level One</a>
-                        </li>
-                    </ul>
-                  </li>                  
-                  <li><a href="javascript:void(0)"><i class="fa fa-laptop"></i> Landing Page <span class="label label-success pull-right">Coming Soon</span></a></li>
-                </ul>
               </div>
 
             </div>
@@ -299,83 +244,5 @@
     
     <!-- Custom Theme Scripts -->
     <script src="js/custom.min.js"></script>
-    <script>
-      var numBins = 40, data = dataFactory(10000, numBins, false);
-
-
-
-        console.log(data);
-        /*
-        $("#histogramSlider").histogramSlider({
-            data: data,
-            sliderRange: [0, 1000000],
-            optimalRange: [0, 300000],
-            selectedRange: [150000, 750000],
-            numberOfBins: numBins, 
-            showTooltips: false,
-            showSelectedRange: false
-        });
-        */
-
-        numBins = 20;
-
-        $("#histogramSlider2").histogramSlider({
-            data: dataFactory(300, numBins, false),
-            sliderRange: [0, 1000000],
-            optimalRange: [0, 1000000],
-            selectedRange: [200000, 750000],
-            numberOfBins: numBins,
-            showSelectedRange: false,
-            showTooltips: false
-        });
-
-        //renderData(data);
-        
-        function dataFactory(itemCount, numberOfBins, group) {
-            var data = { "items": [] };
-
-            for (var i = 0; i < itemCount; i++) {
-                var rnd = Math.floor(Math.random() * numberOfBins) + 1;
-                var rnd2 = Math.floor(Math.random() * 120000);
-                var v = ((1000000 / numberOfBins) - rnd2) * rnd;
-                if (group) {
-                    data.items.push({ "value": v, "count": rnd });
-                } else {
-                    data.items.push({ "value": v });
-                }
-            }
-
-            return data;
-        }
-
-        /*ko.bindingHandlers.slider = {
-          init: function (element, valueAccessor, allBindingsAccessor) {
-            // slideStop event needed for onClick of the slider
-            ko.utils.registerEventHandler(element, "slideStop", function (event) {
-                var observable = valueAccessor();
-                observable(event.value);
-            });
-            ko.utils.registerEventHandler(element, "slide", function (event) {
-                var observable = valueAccessor();
-                observable(event.value);
-            });
-          },
-          update: function (element, valueAccessor) {
-            var value = ko.utils.unwrapObservable(valueAccessor());
-            //console.log(value);
-          }
-        };
-
-
-        var ViewModel = function() {
-            var self = this;
-            self.histoSlider = ko.observable([150000, 750000]);
-            self.range = ko.computed(function() {
-                return self.histoSlider()[0] + " - " + self.histoSlider()[1];
-            });
-        }
-
-        ko.applyBindings(new ViewModel());*/
-    </script>
   </body>
 </html>

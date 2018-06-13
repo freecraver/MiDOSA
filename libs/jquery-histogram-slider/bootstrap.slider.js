@@ -704,15 +704,15 @@ var windowIsDefined = (typeof window === "undefined" ? "undefined" : _typeof(win
 
 			if (updateSlider === true) {
 				// Reset classes
-				this._removeClass(this.handle1, 'round triangle');
-				this._removeClass(this.handle2, 'round triangle hide');
+				this._removeClass(this.handle1, 'triangle round');
+				this._removeClass(this.handle2, 'triangle round hide');
 
 				for (i = 0; i < this.ticks.length; i++) {
-					this._removeClass(this.ticks[i], 'round triangle hide');
+					this._removeClass(this.ticks[i], 'triangle round hide');
 				}
 			}
 
-			var availableHandleModifiers = ['round', 'triangle', 'custom'];
+			var availableHandleModifiers = ['triangle', 'round', 'custom'];
 			var isValidHandleType = availableHandleModifiers.indexOf(this.options.handle) !== -1;
 			if (isValidHandleType) {
 				this._addClass(this.handle1, this.options.handle);
@@ -1187,7 +1187,8 @@ var windowIsDefined = (typeof window === "undefined" ? "undefined" : _typeof(win
 						}
 
 						var currentRange = this._createHighlightRange(startPercent, endPercent);
-
+						console.log("startPerc: " + startPercent + " endPercent: " + endPercent + " currentRange: " + currentRange);
+						console.log("hallo2222");
 						if (currentRange) {
 							if (this.options.orientation === 'vertical') {
 								this.rangeHighlightElements[_i].style.top = currentRange.start + "%";
@@ -1196,6 +1197,7 @@ var windowIsDefined = (typeof window === "undefined" ? "undefined" : _typeof(win
 								if (this.options.rtl) {
 									this.rangeHighlightElements[_i].style.right = currentRange.start + "%";
 								} else {
+									//this.rangeHighlightElements[_i].style.left = currentRange.start + "%";
 									this.rangeHighlightElements[_i].style.left = currentRange.start + "%";
 								}
 								this.rangeHighlightElements[_i].style.width = currentRange.size + "%";

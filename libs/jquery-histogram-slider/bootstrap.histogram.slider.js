@@ -71,6 +71,7 @@
             selectedRange: [0, 0], // Min and Max slider values selected
             height: 200,
             numberOfBins: 40,
+            slidername: 'slider',
             showTooltips: false,
             showSelectedRange: false
         };
@@ -89,7 +90,7 @@
                 rangePerBin = range / this.options.numberOfBins;;
 
             for (i = 0; i < dataItems.length; i++) {
-                var index = parseInt(dataItems[i].value / rangePerBin),
+                var index = parseInt((dataItems[i].value+self.options.data.offset) / rangePerBin),
                     increment = 1;
 
                 if (dataItems[i].count) {
@@ -111,6 +112,12 @@
             var heightRatio = calculateHeightRatio(bins, self.options.height),
                 widthPerBin = 100 / this.options.numberOfBins;
 
+            /*console.log("-------------");
+            console.log(bins);
+            console.log(heightRatio);
+            console.log("-------------");
+            */
+
             for (i = 0; i < bins.length; i++) {
                 var binRange = getBinRange(rangePerBin, i, this.options.sliderRange[0]),
                     inRangeClass = "bin-color-selected",
@@ -120,7 +127,8 @@
                     inRangeClass = "bin-color-optimal-selected";
                     outRangeClass = "bin-color-optimal";
                 }
-
+                //console.log(binRange[0]);
+                //console.log(binRange[1]);
                 var toolTipHtml = self.options.showTooltips ? "<span class='tooltiptext'>" + binRange[0] + " - " + binRange[1] + "</br>count: " + bins[i] + "</span>" : "";
 
                 var scaledValue = parseInt(bins[i] * heightRatio),
@@ -128,6 +136,14 @@
                     inRangeOffset = parseInt(self.options.height - height),
                     outRangeOffset = -parseInt(self.options.height - height * 2);
 
+                /*console.log("---");
+                console.log(bins[i]);
+                console.log(heightRatio);
+                console.log(scaledValue);
+                console.log(height);
+                console.log(inRangeOffset);
+                console.log(outRangeOffset);
+                */
                 var binHtml = "<div class='tooltip' style='float:left!important;width:" + widthPerBin + "%;'>" +
                     toolTipHtml +
                     "<div class='bin in-range " + inRangeClass + "' style='height:" + height + "px;bottom:-" + inRangeOffset + "px;position: relative;'></div>" +
@@ -136,7 +152,7 @@
 
                 $("#" + histogramName).append(binHtml);
             }
-
+            console.log(self.options.slidername);
             $("#" + sliderName).slider({
                 range: true,
                 min: self.options.sliderRange[0],

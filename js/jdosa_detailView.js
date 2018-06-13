@@ -397,6 +397,22 @@ class DetailView {
         }
     }
 
+     /**
+     * retrieves the index of the selection box which is currently selected
+     * this is the same index as the one of the related filter
+     *
+     * @return {*} index of the currently selected filter, or -1 if none is selected
+     */
+    getActiveSelectionIndex() {
+        let activeRectangle = this.selectionCanvas.getActiveObject();
+
+        if (activeRectangle != null) {
+            return this.selectionBoxArr.indexOf(activeRectangle);
+        }
+
+        return -1;
+    }
+
     /**
      * changes the color for a selection rectangle
      *

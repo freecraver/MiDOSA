@@ -68,7 +68,7 @@ $(function ($, window, document, undefined) {
         this.options = {
             sliderRange: [0, 1000000], // Min and Max slider values
             optimalRange: [0, 0], // Optimal range to select within
-            selectedRange: [0, 0], // Min and Max slider values selected
+            selectedRange: [0, 1000000], // Min and Max slider values selected
             height: 200,
             numberOfBins: 40,
             showTooltips: false,
@@ -140,6 +140,7 @@ $(function ($, window, document, undefined) {
                 min: self.options.sliderRange[0],
                 max: self.options.sliderRange[1],
                 values: self.options.selectedRange,
+                handle: 'triangle',
                 slide: function (event, ui) {
                     updateHistogram(ui.values, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
                 }

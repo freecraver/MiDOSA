@@ -14,8 +14,8 @@
 
  .ui-slider-horizontal { height: .2em !important; }
  .ui-slider .ui-slider-handle {
-     width: .8em !important;
-     height: .8em !important;
+     width: .4em !important;
+     height: .4em !important;
      border-radius: 50% !important;
  }
 
