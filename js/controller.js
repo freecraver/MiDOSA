@@ -9,12 +9,13 @@
          *
          * @param detailView reference to an initialized detailView instance that should be connected to the controller
          */
-        constructor(detailView){
+        constructor(detailView , overView){
             this.filterArr = [];
             this.nodes = detailView.sigInst.camera.graph.nodes();
             this.edges = undefined;
             this.edgeDict = undefined;
             this.detailView = detailView;
+            this.overView = overView;
             this.filterPanel = new FilterPanel('selection-panel');
             this.useOutgoingEdges = true;
             this.filterSelected = false;
@@ -51,10 +52,6 @@
             if (itemData.min < 0) {
                 itemData.offset = Math.ceil(Math.abs(itemData.min));
             }
-            //retData.items=itemData;
-            //console.log(itemData.min);
-            //console.log(itemData.max);
-            //console.log(itemData);
             return itemData;
         }
 
@@ -69,10 +66,7 @@
             var span = document.createElement('div');
             span.style = "color:#fff; padding-left: 10px; width:20%; text-align: right; padding-top: 3%; font-size: 10px;";
             span.className = "noselect";
-            span.innerHTML=name.replace("_"," ");
-
-
-            
+            span.innerHTML=name.replace("_"," ");            
 
             div.appendChild(innerdiv);
             div.appendChild(span);
@@ -81,7 +75,7 @@
                 var numBins = 40;
                 var u = Math.min(0,Math.floor(data.min + data.offset));
                 var o = Math.max(0,Math.ceil(data.max + data.offset));
-                console.log(data);
+                //console.log(data);
                 $(innerdiv).histogramSlider({
                     data: data,
                     sliderRange: [u,o],
@@ -89,7 +83,8 @@
                     selectedRange: [u,o],
                     height: 25,
                     numberOfBins: numBins, 
-                    slidername: name+'-slider',
+                    name: name,
+                    controller: this,
                     showTooltips: false,
                     showSelectedRange: false
                 });
@@ -97,7 +92,7 @@
 
 
 
-
+/*
                 $("#histogramSlider2").histogramSlider({
                     data: data,
                     sliderRange: [u,o],
@@ -105,19 +100,21 @@
                     selectedRange: [u,o],
                     height: 25,
                     numberOfBins: numBins, 
-                    slidername: 'histogramSlider2-slider',
+                    name: 'histogramSlider2',
+                    controller: this,
                     showTooltips: true,
                     showSelectedRange: true
                 });
+                */
             }
         }
 
-        loadNodeNav() {
+        loadNodeNav(nodes) {
             let _self = this;
-
+            var domParent = document.getElementById('nav_nodes_content');
+            domParent.innerHTML='';
             
-            var keys = Object.keys(this.nodes[0]);
-            var nodeData = new Array(keys.length);
+            var keys = Object.keys(nodes[0]);            
             //console.log(keys.length-10);
             //console.log(nodeData.length-10);
 
@@ -125,15 +122,15 @@
             keys.forEach(function(key){
                 if (key[0]===key[0].toUpperCase()) {
                     var numBins = 40;
-                    var data = dataFactory(10000, numBins, false);
+                    //var data = dataFactory(10000, numBins, false);
                     var ndata = _self.prepareJsonData(key, _self.nodes);
-                    //console.log(ndata);
+                    
                     // create structure for 1 Slider Element                
                     if (key==="LATITUDE" || key==="LONGITUDE") {
                         _self.createHistogramElement('nav_nodes_content', key, ndata, 1);
                     }
                     else {
-                        _self.createHistogramElement('nav_nodes_content', key, data, 0);
+                        _self.createHistogramElement('nav_nodes_content', key, ndata, 0);
                     }
                 }
             });
@@ -154,14 +151,26 @@
                 }
                 return data;
             }
+
+            console.log("i am very sad");
+            //$('#LATITUDE_slider').slider({value:[0,50]});
+            /*var values = [20,50];
+            
+            var slider = document.getElementById('LATITUDE_histogram-slider');
+
+            slider.dispatchEvent(
+                //new CustomEvent('custom', { detail: { text: "hallo", vals : values, slidername: ''}}));
+                new Event('slide', { value: values, detail: { text: "hallo", slidername: ''}}));
+                */
         }
 
         loadEdgeNav() {
             let _self = this;
 
-            
-            var keys = Object.keys(this.edges[0]);
-            var edgeData = new Array(keys.length);
+            var domParent = document.getElementById('nav_edges_content');
+            domParent.innerHTML='';
+
+            var keys = Object.keys(_self.edges[0]);
             //console.log(keys.length-10);
             //console.log(nodeData.length-10);
 
@@ -169,7 +178,6 @@
             keys.forEach(function(key){
                 if (key[0]===key[0].toUpperCase()) {
                     var numBins = 40;
-                    var data = dataFactory(10000, numBins, false);
                     var ndata = _self.prepareJsonData(key, _self.edges);
                     //console.log(ndata);
                     // create structure for 1 Slider Element                
@@ -184,23 +192,6 @@
                     //}
                 }
             });
-
-            // only for testing purposes
-            function dataFactory(itemCount, numberOfBins, group) {
-                var data = { "items": [] };
-
-                for (var i = 0; i < itemCount; i++) {
-                    var rnd = Math.floor(Math.random() * numberOfBins) + 1;
-                    var rnd2 = Math.floor(Math.random() * 1200000);
-                    var v = ((1000000 / numberOfBins) - rnd2) * rnd;
-                    if (group) {
-                        data.items.push({ "value": v, "count": rnd });
-                    } else {
-                        data.items.push({ "value": v });
-                    }
-                }
-                return data;
-            }
         }
 
 
@@ -213,7 +204,7 @@
         buildEdgeDict(edges) {
             let _self = this;
             _self.edges = edges;
-            _self.loadEdgeNav();
+            _self.loadEdgeNav(edges);
             _self.edgeDict = {};
 
             edges.forEach(function(edge) {
@@ -267,6 +258,8 @@
             this.filterArr.push(filter);
             this.filterPanel.addFilter(this.filterArr.length - 1, this.filterArr[this.filterArr.length-1].markingColor);
             this.recalcBoxes();
+
+            //this.overView.addNode(new GroupedNode(this.filterArr.length-1));
         }
 
         /**
@@ -279,6 +272,7 @@
          */
         updateFilter(idx, feature, boundaries, updateSelections = true) {
             this.filterArr[idx].nodeFilterMap.set(feature, boundaries);
+            this.filterArr[idx].edgeFilterMap.set(feature, boundaries);
 
             if (updateSelections) {
                 // only executed if flag is set
@@ -448,6 +442,7 @@
             this.markingColor = markingColor;
             filterArr.forEach(function(el){
                 this.nodeFilterMap.set(el.feature, el.boundary);
+                this.edgeFilterMap.set(el.feature, el.boundary);
             }, this);
         }
 
@@ -489,5 +484,16 @@
 
             // all checks passed - this node is within the multidimensional feature box
             return true;
+        }
+    
+    };
+
+    class GroupedNode {
+        constructor(id, nodes, outeredges, inneredges, markingColor) {
+            this.id = id;
+            this.nodes = nodes;
+            this.outeredges = outeredges;
+            this.inneredges = inneredges;
+            this.markingColor = markingColor;
         }
     };

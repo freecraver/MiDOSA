@@ -72,7 +72,6 @@
                     </ul>
                     <div id="myTabContent" class="tab-content">
                       <div role="tabpanel" class="tab-pane fade" id="nav_nodes_content" aria-labelledby="nodes-tab" style="height:50% !important;">
-                        <div id="histogramSlider" data-bind="slider: histoSlider"></div>
                       </div>
                       <div role="tabpanel" class="tab-pane fade active in" id="nav_edges_content" aria-labelledby="edges-tab" style="height:400px !important; overflow-y: scroll;">
                       </div>
@@ -173,17 +172,7 @@
                   <div class="x_title">
                     <h2>Overview</h2>
                     <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="add_selection"><i class="fa fa-plus"></i></a>
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <ul class="dropdown-menu" role="menu">
-                          <li><a href="#">Settings 1</a>
-                          </li>
-                          <li><a href="#">Settings 2</a>
-                          </li>
-                        </ul>
+                      <li><a class="collapse-link"><i class="fa fa-chevron-up"><span class="tooltiptext">Hide View</span></i></a>
                       </li>
                       <li><a class="edge_toggle" data-toggle="tooltip" title="Toggle edges"><i class="fa fa-eye-slash"></i></a>
                       </li>
@@ -192,10 +181,9 @@
                   </div>
                   <div id="overview_graph_container">
                     <!-- The overview graph is displayed here.. -->
-                     <div id="">
+                     <!--<div id="">
                         <div id="histogramSlider2"></div>
-                        Range: <span data-bind="text: range"></span>
-                    </div>
+                    </div>-->
                   </div>
                 </div>
               </div>
@@ -240,6 +228,7 @@
     <script src = "js/custom_handlers.js"></script>
     <script src = "js/controller.js"></script>
     <script src = "js/jdosa_detailView.js"></script>
+    <script src = "js/jdosa_overView.js"></script>
 	   <script src = "js/main.js"></script>
     
     <!-- Custom Theme Scripts -->

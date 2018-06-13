@@ -36,6 +36,10 @@
         });
     };
 
+    var hs_test = function() {
+        console.log("test");
+    }
+
     var getBinRange = function(rangePerBin, index, sliderMin) {
         var min = (rangePerBin * index) + sliderMin,
             max = rangePerBin * (index + 1) - 1;
@@ -71,7 +75,8 @@
             selectedRange: [0, 0], // Min and Max slider values selected
             height: 200,
             numberOfBins: 40,
-            slidername: 'slider',
+            filtername: 'slider',
+            controller: null,
             showTooltips: false,
             showSelectedRange: false
         };
@@ -112,12 +117,6 @@
             var heightRatio = calculateHeightRatio(bins, self.options.height),
                 widthPerBin = 100 / this.options.numberOfBins;
 
-            /*console.log("-------------");
-            console.log(bins);
-            console.log(heightRatio);
-            console.log("-------------");
-            */
-
             for (i = 0; i < bins.length; i++) {
                 var binRange = getBinRange(rangePerBin, i, this.options.sliderRange[0]),
                     inRangeClass = "bin-color-selected",
@@ -127,8 +126,6 @@
                     inRangeClass = "bin-color-optimal-selected";
                     outRangeClass = "bin-color-optimal";
                 }
-                //console.log(binRange[0]);
-                //console.log(binRange[1]);
                 var toolTipHtml = self.options.showTooltips ? "<span class='tooltiptext'>" + binRange[0] + " - " + binRange[1] + "</br>count: " + bins[i] + "</span>" : "";
 
                 var scaledValue = parseInt(bins[i] * heightRatio),
@@ -136,14 +133,6 @@
                     inRangeOffset = parseInt(self.options.height - height),
                     outRangeOffset = -parseInt(self.options.height - height * 2);
 
-                /*console.log("---");
-                console.log(bins[i]);
-                console.log(heightRatio);
-                console.log(scaledValue);
-                console.log(height);
-                console.log(inRangeOffset);
-                console.log(outRangeOffset);
-                */
                 var binHtml = "<div class='tooltip' style='float:left!important;width:" + widthPerBin + "%;'>" +
                     toolTipHtml +
                     "<div class='bin in-range " + inRangeClass + "' style='height:" + height + "px;bottom:-" + inRangeOffset + "px;position: relative;'></div>" +
@@ -152,18 +141,49 @@
 
                 $("#" + histogramName).append(binHtml);
             }
-            console.log(self.options.slidername);
+            //console.log(self.options.slidername);
+                        /*console.log("------");
+                        console.log(self.options.sliderRange[0]);
+                        console.log(self.options.sliderRange[1]);
+                        console.log("------");
+            */
+        
+            //var s = document.getElementById(sliderName);
+            //s.addEventListener('custom', e => console.log(e.detail.text()));
+
+
             $("#" + sliderName).slider({
                 range: true,
                 min: self.options.sliderRange[0],
                 max: self.options.sliderRange[1],
                 value: self.options.selectedRange,
-                tooltip: "hide"
+                tooltip: "hide",
             }).on('slide', function(event){
-              updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
+                //console.log(event.value);
+                //console.log(self.options.data.offset);
+                updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
+                if (self.options.controller!=null) {
+                    if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
+                        self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
+                                                            self.options.name, 
+                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, false);
+                    }
+                }
+
             }).on('slideStop', function(event){
-              updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
+                updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
+                if (self.options.controller!=null) {
+                    if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
+                        self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
+                                                            self.options.name, 
+                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, false);
+                    }
+                }
+            }).on('custom',function(event) {
+                console.log(event);
+                updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
             });
+
 
             if (self.options.showSelectedRange){
                 $("#" + sliderName).after("<p id='" + sliderName + "-value' class='selected-range'></p>");
