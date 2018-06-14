@@ -166,7 +166,7 @@
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
                                                             self.options.name, 
-                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, false);
+                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, true);
                     }
                 }
 
@@ -176,7 +176,7 @@
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
                                                             self.options.name, 
-                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, false);
+                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, true);
                     }
                 }
             }).on('custom',function(event) {
