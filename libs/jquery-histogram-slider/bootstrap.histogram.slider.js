@@ -57,13 +57,14 @@
     }
 
     var calculateHeightRatio = function(bins, histogramHeight) {
+        if (bins[40] === NaN)
+            bins[40] = 0;
         var maxValue = Math.max.apply(null, bins);
         var height = convertToHeight(maxValue);
 
         if (height > histogramHeight) {
             return histogramHeight / height;
         }
-
         return 1;
     }
 
@@ -91,7 +92,7 @@
 
             var self = this,
                 dataItems = self.options.data.items,
-                bins = new Array(this.options.numberOfBins).fill(0),
+                bins = new Array(this.options.numberOfBins+1).fill(0),
                 range = self.options.sliderRange[1] - self.options.sliderRange[0],
                 rangePerBin = range / this.options.numberOfBins;;
 
