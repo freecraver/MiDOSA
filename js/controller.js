@@ -29,7 +29,6 @@
             itemData.offset=0;
 
             for (var v in data) {
-                //console.log(data[v]);
                 for (var w in data[v]) {
                     if (w===key) {
                         itemData.items.push({"value" : data[v][w]});
@@ -75,7 +74,6 @@
                 var numBins = 40;
                 var u = Math.min(0,Math.floor(data.min + data.offset));
                 var o = Math.max(0,Math.ceil(data.max + data.offset));
-                //console.log(data);
                 $(innerdiv).histogramSlider({
                     data: data,
                     sliderRange: [u,o],
@@ -115,9 +113,6 @@
             domParent.innerHTML='';
             
             var keys = Object.keys(nodes[0]);            
-            //console.log(keys.length-10);
-            //console.log(nodeData.length-10);
-
 
             keys.forEach(function(key){
                 if (key[0]===key[0].toUpperCase()) {
@@ -151,17 +146,6 @@
                 }
                 return data;
             }
-
-            console.log("i am very sad");
-            //$('#LATITUDE_slider').slider({value:[0,50]});
-            /*var values = [20,50];
-            
-            var slider = document.getElementById('LATITUDE_histogram-slider');
-
-            slider.dispatchEvent(
-                //new CustomEvent('custom', { detail: { text: "hallo", vals : values, slidername: ''}}));
-                new Event('slide', { value: values, detail: { text: "hallo", slidername: ''}}));
-                */
         }
 
         loadEdgeNav() {
@@ -171,15 +155,12 @@
             domParent.innerHTML='';
 
             var keys = Object.keys(_self.edges[0]);
-            //console.log(keys.length-10);
-            //console.log(nodeData.length-10);
-
 
             keys.forEach(function(key){
                 if (key[0]===key[0].toUpperCase()) {
                     var numBins = 40;
                     var ndata = _self.prepareJsonData(key, _self.edges);
-                    //console.log(ndata);
+
                     // create structure for 1 Slider Element                
                     if (key==="SCHEDULED_DEPARTURE" || key==="DEPARTURE_TIME" || key==="DEPARTURE_DELAYS" || key==="TAXI_OUT" || key==="WHEELS_OFF" ||
                         key === "SCHEDULED_TIME" || key==="ELAPSED_TIME" || key==="AIR_TIME" || key==="DISTANCE" || key==="WHEELS_ON" || key==="TAXI_IN" || 
@@ -187,9 +168,6 @@
                         key==="AIRLINE_DELAY" || key==="LATE_AIRCRAFT_DELAY"|| key==="WEATHER_DELAY") {
                         _self.createHistogramElement('nav_edges_content', key, ndata, 1);
                     }
-                    //else {
-                    //    _self.createHistogramElement('nav_edges_content', key, ndata, 0);
-                    //}
                 }
             });
         }
@@ -255,6 +233,10 @@
          * @param filter filter to be added
          */
         addFilter(filter){
+
+            var hs = $('#LATITUDE_histogram-slider');
+            var options = $('#LATITUDE_histogram-slider').slider('option');
+
             this.filterArr.push(filter);
             this.filterPanel.addFilter(this.filterArr.length - 1, this.filterArr[this.filterArr.length-1].markingColor);
             this.recalcBoxes();
@@ -270,7 +252,7 @@
          * @param boundaries min-max of feature to be changed
          * @param updateSelections if true, rectangles of detail view are updated
          */
-        updateFilter(idx, feature, boundaries, updateSelections = true) {
+        updateFilter(idx, feature, boundaries, updateSelections = true, updateHistograms = true) {
             this.filterArr[idx].nodeFilterMap.set(feature, boundaries);
             this.filterArr[idx].edgeFilterMap.set(feature, boundaries);
 
@@ -279,7 +261,14 @@
                 // this ensures that selection box resizing does not trigger another resize of the changed box
                 this.detailView.recalcSelectionBoxes(idx, this.filterArr[idx].nodeFilterMap);
             }
-
+            if (updateHistograms) {
+                if (feature==='LATITUDE') {
+                    $('#'+feature+'_histogram-slider').slider('setValue',[boundaries.min, boundaries.max]);
+                }
+                if (feature==='LONGITUDE') {
+                    $('#'+feature+'_histogram-slider').slider('setValue',[boundaries.min+170, boundaries.max+170]);   
+                }
+            }
             this.recalcBoxes();
         }
 

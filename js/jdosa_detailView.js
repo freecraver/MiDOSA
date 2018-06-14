@@ -225,8 +225,8 @@ class DetailView {
                 let featureCoord = _self.getFeatureCoordinatesFromSigma(sigmaCoord);
 
                 // notify controller
-                controller.updateFilter(filterIdx, _self.x_axis, {min: featureCoord.x1, max:featureCoord.x2}, false);
-                controller.updateFilter(filterIdx, _self.y_axis, {min: featureCoord.y1, max:featureCoord.y2}, false);
+                controller.updateFilter(filterIdx, _self.x_axis, {min: featureCoord.x1, max:featureCoord.x2}, false, true);
+                controller.updateFilter(filterIdx, _self.y_axis, {min: featureCoord.y1, max:featureCoord.y2}, false, true);
             }
         });
         _self.selectionCanvas.on('mouse:up', function(opt) {

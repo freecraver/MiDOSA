@@ -34,6 +34,7 @@
                 }
             }
         });
+        //this.options.selectedRange = selectedRange;
     };
 
     var hs_test = function() {
@@ -151,7 +152,7 @@
             //var s = document.getElementById(sliderName);
             //s.addEventListener('custom', e => console.log(e.detail.text()));
 
-
+            //console.log(sliderName);
             $("#" + sliderName).slider({
                 range: true,
                 min: self.options.sliderRange[0],
@@ -164,9 +165,13 @@
                 updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
                 if (self.options.controller!=null) {
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
+
+                        var rebox = false;
+                        if (name ==='LONGITUDE' || name === 'LATITUDE')
+                            rebox = true;
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
                                                             self.options.name, 
-                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, true);
+                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, rebox, false);
                     }
                 }
 
@@ -174,9 +179,12 @@
                 updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
                 if (self.options.controller!=null) {
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
+                        var rebox = false;
+                        if (name ==='LONGITUDE' || name === 'LATITUDE')
+                            rebox = true;
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
                                                             self.options.name, 
-                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, true);
+                                                            {min: event.value[0]-self.options.data.offset, max:event.value[1]-self.options.data.offset}, rebox, false);
                     }
                 }
             }).on('custom',function(event) {
