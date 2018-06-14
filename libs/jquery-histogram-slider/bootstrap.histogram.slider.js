@@ -65,7 +65,7 @@
         if (height > histogramHeight) {
             return histogramHeight / height;
         }
-        return 1;
+        return 1;        
     }
 
     var Plugin = function (element, options) {
@@ -77,7 +77,7 @@
             selectedRange: [0, 0], // Min and Max slider values selected
             height: 200,
             numberOfBins: 40,
-            filtername: 'slider',
+            name: 'slider',
             controller: null,
             showTooltips: false,
             showSelectedRange: false
@@ -168,7 +168,8 @@
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
 
                         var rebox = false;
-                        if (name ==='LONGITUDE' || name === 'LATITUDE')
+                        console.log(self.options.name);
+                        if (self.options.name ==='LONGITUDE' || self.options.name === 'LATITUDE')
                             rebox = true;
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
                                                             self.options.name, 
@@ -178,10 +179,12 @@
 
             }).on('slideStop', function(event){
                 updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
+                
                 if (self.options.controller!=null) {
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
                         var rebox = false;
-                        if (name ==='LONGITUDE' || name === 'LATITUDE')
+                        console.log(self.options.name);
+                        if (self.options.name ==='LONGITUDE' || self.options.name === 'LATITUDE')
                             rebox = true;
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
                                                             self.options.name, 

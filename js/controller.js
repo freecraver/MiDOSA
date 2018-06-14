@@ -70,6 +70,7 @@
             div.appendChild(innerdiv);
             div.appendChild(span);
             document.getElementById(elementId).appendChild(div);
+
             if (drawHist===1) {
                 var numBins = 40;
                 var u = Math.min(0,Math.floor(data.min + data.offset));
