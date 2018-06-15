@@ -209,6 +209,7 @@
             this.filterPanel.switchFilterPanels(filterIdx, newIdx);
             // update detail view
             this.detailView.switchFilterRectangles(filterIdx, newIdx);
+            this.overView.switchFilterIdx(filterIdx,newIdx);
             this.recalcBoxes();
 
             return newIdx;
@@ -235,7 +236,7 @@
          * @param boundaries min-max of feature to be changed
          * @param updateSelections if true, rectangles of detail view are updated
          */
-        updateFilter(idx, feature, boundaries, updateSelections = true, updateHistograms = true) {
+        updateFilter(idx, feature, boundaries, updateSelections = true, updateHistograms = false) {
             this.filterArr[idx].nodeFilterMap.set(feature, boundaries);
             this.filterArr[idx].edgeFilterMap.set(feature, boundaries);
 
