@@ -32,13 +32,16 @@ const colorPool = [[188,179,66],
 $(function() {
 
     let callback_node_load_complete = function() {
+        ovView = new OverView();
+        ovView.initSigma('overview_graph_container', 'overview_panel', USE_WEB_GL);
+        ovView.initOverviewSelectionCanvas(X_AXIS, Y_AXIS);
+    
         controller = new Controller(dtView, ovView);
         controller.loadNodeNav(controller.nodes);
         dtView.readEdges(EDGES_FILE, $("#detail_progress"), EDGE_ID_COL, SOURCE_NODE_COL, TARGET_NODE_COL);
     };
 
-    ovView = new OverView();
-    ovView.initSigma('overview_graph_container', 'overview_panel', USE_WEB_GL);
+    //ovView.initOverviewSelectionCanvas();
 
     dtView = new DetailView();
     dtView.initSigma('detail_graph_container', 'detail_panel', USE_WEB_GL);

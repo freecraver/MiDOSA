@@ -21,6 +21,12 @@
             this.filterSelected = false;
         }
 
+        /**
+         * Extracts relevant data of a json-array with the same attributes in each array-element
+         * @param key The key of the data, that is extracted (e.g. LONGITUDE, LATITUDE, ...)
+         * @param data The input data
+         * @return the extracted data
+         */
         prepareJsonData(key, data) {
             //var retData = {};
             var itemData = {"items" : []};
@@ -53,8 +59,15 @@
             }
             return itemData;
         }
-
-        createHistogramElement(elementId, name, data, drawHist) {
+        
+        /**
+         * creates a histogram element with the structure <div><div>[Histogram Label]</div><div>[Histogram]</div></div
+         * @param elementId The DOM Element the created structure is appended to.
+         * @param name The name of the histogram, equals a filter name (e.g. LONGITUDE, LATITUDE, ...)
+         * @param data The data the histogram is based on
+         * @param drawHist false if the structure should not contain a histogram (for discrete attributes)
+         */
+        createHistogramElement(elementId, name, data, drawHist=true) {
             var div = document.createElement('div');
             div.style="height:50px;";
 
@@ -71,7 +84,7 @@
             div.appendChild(span);
             document.getElementById(elementId).appendChild(div);
 
-            if (drawHist===1) {
+            if (drawHist===true) {
                 var numBins = 40;
                 var u = Math.min(0,Math.floor(data.min + data.offset));
                 var o = Math.max(0,Math.ceil(data.max + data.offset));
@@ -87,27 +100,13 @@
                     showTooltips: false,
                     showSelectedRange: false
                 });
-
-
-
-
-/*
-                $("#histogramSlider2").histogramSlider({
-                    data: data,
-                    sliderRange: [u,o],
-                    optimalRange:[-1,-1],
-                    selectedRange: [u,o],
-                    height: 25,
-                    numberOfBins: numBins, 
-                    name: 'histogramSlider2',
-                    controller: this,
-                    showTooltips: true,
-                    showSelectedRange: true
-                });
-                */
             }
         }
 
+        /**
+         * loads the node histograms in the navigation area
+         * histograms are only created for continuous attributes, which are latitude and longitude
+         */
         loadNodeNav(nodes) {
             let _self = this;
             var domParent = document.getElementById('nav_nodes_content');
@@ -118,37 +117,23 @@
             keys.forEach(function(key){
                 if (key[0]===key[0].toUpperCase()) {
                     var numBins = 40;
-                    //var data = dataFactory(10000, numBins, false);
                     var ndata = _self.prepareJsonData(key, _self.nodes);
                     
                     // create structure for 1 Slider Element                
                     if (key==="LATITUDE" || key==="LONGITUDE") {
-                        _self.createHistogramElement('nav_nodes_content', key, ndata, 1);
+                        _self.createHistogramElement('nav_nodes_content', key, ndata, true);
                     }
                     else {
-                        _self.createHistogramElement('nav_nodes_content', key, ndata, 0);
+                        _self.createHistogramElement('nav_nodes_content', key, ndata, false);
                     }
                 }
             });
-
-            // only for testing purposes
-            function dataFactory(itemCount, numberOfBins, group) {
-                var data = { "items": [] };
-
-                for (var i = 0; i < itemCount; i++) {
-                    var rnd = Math.floor(Math.random() * numberOfBins) + 1;
-                    var rnd2 = Math.floor(Math.random() * 1200000);
-                    var v = ((1000000 / numberOfBins) - rnd2) * rnd;
-                    if (group) {
-                        data.items.push({ "value": v, "count": rnd });
-                    } else {
-                        data.items.push({ "value": v });
-                    }
-                }
-                return data;
-            }
         }
 
+        /**
+         * loads the edge histograms in the navigation area
+         * histograms are only created for continuous attributes
+         */
         loadEdgeNav() {
             let _self = this;
 
@@ -167,7 +152,7 @@
                         key === "SCHEDULED_TIME" || key==="ELAPSED_TIME" || key==="AIR_TIME" || key==="DISTANCE" || key==="WHEELS_ON" || key==="TAXI_IN" || 
                         key==="SCHEDULED_ARRIVAL" || key==="ARRIVAL_TIME"|| key==="ARRIVAL_DELAY"|| key==="AIR_SYSTEM_DELAY" || key==="SECURITY_DELAY" || 
                         key==="AIRLINE_DELAY" || key==="LATE_AIRCRAFT_DELAY"|| key==="WEATHER_DELAY") {
-                        _self.createHistogramElement('nav_edges_content', key, ndata, 1);
+                        _self.createHistogramElement('nav_edges_content', key, ndata, true);
                     }
                 }
             });
@@ -234,15 +219,14 @@
          * @param filter filter to be added
          */
         addFilter(filter){
-
-            var hs = $('#LATITUDE_histogram-slider');
-            var options = $('#LATITUDE_histogram-slider').slider('option');
+            console.log("addFilter");
+            console.log(filter);
 
             this.filterArr.push(filter);
             this.filterPanel.addFilter(this.filterArr.length - 1, this.filterArr[this.filterArr.length-1].markingColor);
             this.recalcBoxes();
 
-            //this.overView.addNode(new GroupedNode(this.filterArr.length-1));
+            this.overView.addNode(new GroupedNode(this.filterArr.length-1, filter.nodeFilterMap, filter.edgeFilterMap, filter.markingColor));
         }
 
         /**
@@ -270,7 +254,11 @@
                     $('#'+feature+'_histogram-slider').slider('setValue',[boundaries.min+170, boundaries.max+170]);   
                 }
             }
-            this.recalcBoxes();
+            let boxNodes = this.getNodesPerBox();
+            let boxEdges = this.getEdgesPerBox(boxNodes);
+            this.overView.updateNodeEdges(idx,boxNodes.mapped[idx], boxEdges.mapped[idx]);
+            //this.recalcBoxes();
+            this.detailView.recalcColoring(boxNodes, boxEdges);
         }
 
         /**
@@ -293,6 +281,7 @@
         removeFilter(idx) {
             this.filterArr.splice(idx,1);
             this.filterPanel.removeFilter(idx);
+            this.overView.removeNode(idx);
             this.recalcBoxes();
         }
 
@@ -479,11 +468,12 @@
     };
 
     class GroupedNode {
-        constructor(id, nodes, outeredges, inneredges, markingColor) {
+        constructor(id, nodes, edges, markingColor) {
             this.id = id;
             this.nodes = nodes;
-            this.outeredges = outeredges;
-            this.inneredges = inneredges;
+            this.edges = edges;
+            this.outeredges = [];
+            this.inneredges = [];
             this.markingColor = markingColor;
         }
     };

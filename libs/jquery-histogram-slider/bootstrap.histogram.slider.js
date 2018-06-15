@@ -143,17 +143,8 @@
 
                 $("#" + histogramName).append(binHtml);
             }
-            //console.log(self.options.slidername);
-                        /*console.log("------");
-                        console.log(self.options.sliderRange[0]);
-                        console.log(self.options.sliderRange[1]);
-                        console.log("------");
-            */
-        
-            //var s = document.getElementById(sliderName);
-            //s.addEventListener('custom', e => console.log(e.detail.text()));
 
-            //console.log(sliderName);
+
             $("#" + sliderName).slider({
                 range: true,
                 min: self.options.sliderRange[0],
@@ -161,14 +152,11 @@
                 value: self.options.selectedRange,
                 tooltip: "hide",
             }).on('slide', function(event){
-                //console.log(event.value);
-                //console.log(self.options.data.offset);
                 updateHistogram(event.value, self.options.sliderRange[0], rangePerBin, histogramName, sliderName);
                 if (self.options.controller!=null) {
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
 
                         var rebox = false;
-                        console.log(self.options.name);
                         if (self.options.name ==='LONGITUDE' || self.options.name === 'LATITUDE')
                             rebox = true;
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 
@@ -183,7 +171,6 @@
                 if (self.options.controller!=null) {
                     if(self.options.controller.detailView.getActiveSelectionIndex()!=-1) {
                         var rebox = false;
-                        console.log(self.options.name);
                         if (self.options.name ==='LONGITUDE' || self.options.name === 'LATITUDE')
                             rebox = true;
                         self.options.controller.updateFilter(self.options.controller.detailView.getActiveSelectionIndex(), 

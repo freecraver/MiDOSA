@@ -17,17 +17,18 @@ class OverView {
         this.max_val = 500;
         this.x_axis = undefined;
         this.y_axis = undefined;
-        this.initOverviewSelectionCanvas();
     }
-
+    
     /**
      * create new sigma instance
+     * at startup do not show edges do prevent cluttering
      *
      * @param container_id id of div where detail graph should be displayed
      * @param panel_id id of the bootstrap panel wrapping the container
      * @param use_web_gl if true, webgl is used for rendering (keep in mind that less functionality is supported)
      */
     initSigma(container_id, panel_id, use_web_gl) {
+        console.log("init overview sigma");
         let _self = this;
 
         if (!use_web_gl) {
@@ -41,24 +42,25 @@ class OverView {
                 type: (use_web_gl ? 'webgl' : 'canvas')
             },
             settings: {
-                minNodeSize: 10,
-                maxNodeSize: 10,
-                minArrowSize: 14,
+                minNodeSize: 40,
+                maxNodeSize: 40,
+                minEdgeSize: 1,
+                maxEdgeSize: 40,
+                minArrowSize: 4,
                 zoomMin: 0.1,
                 autoRescale: true,
-                hideEdgesOnMove: false
+                hideEdgesOnMove: true
             }
         });
-
-        // hide/show overview on collapse click (fix for sigma.js)
+        CustomShapes.init(this.sigInst);
+        // hide/show detail view on collapse click (fix for sigma.js)
         $("#" + panel_id + " .collapse-link").click(function(){ $("#" + container_id).toggle();});
 
-        // change incoming/outgoing edges on click
-        $("#" + panel_id + " .change_edge_dir").click(function (){
-            //controller.useOutgoingEdges = !controller.useOutgoingEdges;
-            //controller.buildEdgeDict(_self.sigInst.camera.graph.edges());
-            //controller.recalcBoxes();
-            _self.sigInst.refresh({skipIndexation: true});
+        // hide/show unmapped edges on eye click
+        $("#" + panel_id + " .edge_toggle").click(function() {
+            $("#" + panel_id + " .edge_toggle > i").toggleClass('fa-eye fa-eye-slash');
+            _self.showAllEdges = ! _self.showAllEdges;
+            controller.recalcBoxes();
         });
 
         // key binder
@@ -67,8 +69,27 @@ class OverView {
         });
     }
 
-    initOverviewSelectionCanvas() {
+    /**
+     * positions sigma camera to the center of our scale
+     * and removes scaling
+     */
+    setCameraToCenter() {
+        let center_pos = (this.max_val - this.min_val) / 2;
+        this.sigInst.camera.goTo({x:center_pos, y:center_pos, ratio:1});
+    }
+
+    /**
+     * inits the fabric canvas which is used to create the overview nodes and
+     * also inits the transmission of mouse events to the sigma canvas
+     * @param x_axis  column name from file used as horizontal axis
+     * @param y_axis  column name from file used as vertical axis
+     */
+    initOverviewSelectionCanvas(x_axis, y_axis) {
+        console.log("initOverviewSelectionCanvas");
         let _self = this;
+
+        _self.x_axis = x_axis;
+        _self.y_axis = y_axis;
 
         let $SIGMA_SCENE = $("#overview_graph_container");
 
@@ -81,30 +102,8 @@ class OverView {
 
         _self.selectionCanvas = new fabric.Canvas("overview_canvas");
         //set background to transparent to allow rendering of other layers
-        _self.selectionCanvas.setBackgroundColor(null);
+        _self.selectionCanvas.setBackgroundColor('rgba(1, 73, 64, 0.6)');
 
-        _self.selectionCanvas.on('mouse:move', function(opt) {
-            if (this.isDragging) {
-                // panning of whole canvas
-                var e = opt.e;
-                this.viewportTransform[4] += e.clientX - this.lastPosX;
-                this.viewportTransform[5] += e.clientY - this.lastPosY;
-                this.requestRenderAll();
-                this.lastPosX = e.clientX;
-                this.lastPosY = e.clientY;
-                moveHandler(e, _self.sigInst);
-            } else if (_self.selectionCanvas.getActiveObject() != null) {
-                // move or transform a selection rectangle
-                let rect = _self.selectionCanvas.getActiveObject();
-                let filterIdx = _self.selectionBoxArr.indexOf(rect);
-                let sigmaCoord = _self.getSigmaCoordinatesFromFabric(rect);
-                let featureCoord = _self.getFeatureCoordinatesFromSigma(sigmaCoord);
-
-                // notify controller
-                controller.updateFilter(filterIdx, _self.x_axis, {min: featureCoord.x1, max:featureCoord.x2}, false);
-                controller.updateFilter(filterIdx, _self.y_axis, {min: featureCoord.y1, max:featureCoord.y2}, false);
-            }
-        });
         _self.selectionCanvas.on('mouse:up', function(opt) {
             this.isDragging = false;
             this.selection = true;
@@ -131,28 +130,187 @@ class OverView {
         });
     }
 
-    addNode(groupedNode) {
-        console.log("overview addNode");
+    /**
+     * Adds a groupedNode to the canvas, which consists of nodes and edges
+     * that are aggregated in a single node. Edges are not considered when
+     * then node is initially added.
+     * @param groupedNode The node that is added. Precondition: id, markingColor, nodes and edges must be set.
+     */
+    addNode(groupedNode) {        
         let _self = this;
-        groupedNode.size=_self.sigInst.settings("minNodeSize");
-        _self.sigInst.graph.addNode(groupedNode);
+
+        let node = new Object();
+        node.id = groupedNode.id+'_ovNode';
+        node.n = groupedNode.id;
+
+        _self.groupedNodeArr.push(node);
+
+
+        node = _self.calculateNodePosition(node);
+        node.size = _self.sigInst.settings("minNodeSize");
+        node.type = 'square';
+        node.color = groupedNode.markingColor;
+        node.edges=groupedNode.edges;
+        
+        _self.sigInst.graph.addNode(node);
+        //_self.updateEdges(node);
         _self.sigInst.refresh();
-    }
-
-    removeNode(groupedNode) {
-
-    }
-
-    updateNode(groupedNode) {
-
+        //_self.setCameraToCenter();
     }
 
     /**
-     * positions sigma camera to the center of our scale
-     * and removes scaling
+     * Removes a node from the canvas.
+     * @param id the id of the node.
      */
-    setCameraToCenter() {
-        let center_pos = (this.max_val - this.min_val) / 2;
-        this.sigInst.camera.goTo({x:center_pos, y:center_pos, ratio:1});
+    removeNode(id) {
+        let _self = this;
+
+        //_self.groupedNodeArr.splice(idx, 1);
+        _self.sigInst.graph.dropNode(id+'_ovNode');
+        _self.sigInst.refresh();
+    }
+
+    /**
+     * Updates the inner edges and nodes of an overview node.
+     * @param idx the idx of the filter
+     * @param the inner nodes
+     * @param the outer nodes
+     */
+    updateNodeEdges(idx, nodes, edges) {
+        let _self = this;
+        var i;
+        for (i=0; i<_self.sigInst.graph.nodes().length;i++) {
+            var node = _self.sigInst.graph.nodes()[i];
+            if (node.id === (idx+'_ovNode')) {
+                node.nodes = nodes;
+                node.edges = edges;
+                _self.updateEdges(node);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Updates and draws edges to the canvas
+     * @param newNode the node whichs edges are to be drawn.
+     */
+    updateEdges(newNode) {
+        let _self = this;
+        if (_self.groupedNodeArr.length>=1) {
+            _self.sigInst.graph.nodes().forEach(function(outerNode) {
+                var newedge = new Object();
+                newedge.id = outerNode.id+newNode.id;
+                newedge.source = outerNode.id;
+                newedge.target = newNode.id;
+                
+                newedge.color = outerNode.color;
+                var update = false;
+                var i;
+                for (i=0; i<_self.sigInst.graph.edges().length;i++) {
+                    var outerEdge = _self.sigInst.graph.edges()[i];
+                    if (outerEdge.id==newedge.id) {
+                        newedge = outerEdge;
+                        update=true;
+                        break;
+                    }
+                }
+                
+                newedge.size = 0;
+
+                //outerNode.nodes.forEach(function(n1) {
+                    newNode.nodes.forEach(function(n2) {
+                        outerNode.edges.forEach(function(e) {
+                            if (e.target===n2.id)
+                                newedge.size = newedge.size+1;
+                        });
+                    });
+                //});
+                var countedsize = newedge.size;
+
+                newedge.size=(newedge.size/100)+1;
+                if (update==false){
+                    _self.sigInst.graph.addEdge(newedge);
+                }
+                if (countedsize == 0){
+                    _self.sigInst.graph.dropEdge(newedge.id);
+                }
+
+            });
+
+            _self.sigInst.graph.nodes().forEach(function(outerNode) {
+                var newedge = new Object();
+                newedge.id = newNode.id+outerNode.id;
+                newedge.source =  newNode.id;
+                newedge.target = outerNode.id;
+                
+                newedge.color = newNode.color;
+                var update = false;
+                var i;
+                for (i=0; i<_self.sigInst.graph.edges().length;i++) {
+                    var outerEdge = _self.sigInst.graph.edges()[i];
+                    if (outerEdge.id==newedge.id) {
+                        newedge = outerEdge;
+                        update=true;
+                        break;
+                    }
+                }
+
+
+                newedge.size = 0;
+
+                newNode.nodes.forEach(function(n2) {
+                    outerNode.edges.forEach(function(e) {
+                        if (e.source===n2.id)
+                            newedge.size = newedge.size+1;
+                    });
+                });
+                var countedsize = newedge.size;
+                newedge.size=(newedge.size/100)+1;
+
+                if (update==false){
+                    _self.sigInst.graph.addEdge(newedge);
+                }
+
+                if (countedsize == 0){
+                    _self.sigInst.graph.dropEdge(newedge.id);
+                }
+
+            });
+
+
+        }
+        _self.sigInst.refresh();
+    }
+
+    /**
+     * calculates a simple node positions for the sigma nodes
+     * @param node The node the positioning is set for
+     * @returns the node with calculated .x and .y
+     */
+    calculateNodePosition(node) {
+        let _self = this;
+        
+        var nodeDistance = _self.sigInst.settings("minNodeSize");
+        if (_self.groupedNodeArr.length==1) {
+            node.x = (_self.max_val/2);// - nodeDistance;
+            node.y = (_self.max_val/2);// - nodeDistance;
+            return node;
+        }
+        
+        if (_self.groupedNodeArr.length%2 == 0) {
+            var prevnode = _self.groupedNodeArr[_self.groupedNodeArr.length-2];
+            var sigmanode = _self.sigInst.graph.nodes()[_self.groupedNodeArr.length-2];
+            sigmanode.x = (_self.max_val/2) - nodeDistance; 
+
+            node.x = (prevnode.x) + nodeDistance*2;
+            node.y = prevnode.y;
+            return node;
+        } else {
+            var prevnode = _self.groupedNodeArr[_self.groupedNodeArr.length-3];
+
+            node.x = (_self.max_val/2);
+            node.y = prevnode.y+nodeDistance*2;
+            return node;
+        }
     }
 };
