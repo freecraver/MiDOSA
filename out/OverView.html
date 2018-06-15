@@ -247,7 +247,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line208">line 208</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line263">line 263</a>
     </li></ul></dd>
     
 
@@ -377,7 +377,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line398">line 398</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line467">line 467</a>
     </li></ul></dd>
     
 
@@ -517,7 +517,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line191">line 191</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line246">line 246</a>
     </li></ul></dd>
     
 
@@ -647,7 +647,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line198">line 198</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line253">line 253</a>
     </li></ul></dd>
     
 
@@ -681,7 +681,7 @@
     
 
     
-    <h4 class="name" id="initOverviewSelectionCanvas"><span class="type-signature"></span>initOverviewSelectionCanvas<span class="signature">(x_axis, y_axis)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="initHistAttrSwitcher"><span class="type-signature"></span>initHistAttrSwitcher<span class="signature">(edge)</span><span class="type-signature"></span></h4>
     
 
     
@@ -689,7 +689,7 @@
 
 
 <div class="description">
-    inits the fabric canvas which is used to create the overview nodes andalso inits the transmission of mouse events to the sigma canvas
+    inits overview box toggleenables users to switch between histogram attributes
 </div>
 
 
@@ -725,7 +725,7 @@
 
         <tr>
             
-                <td class="name"><code>x_axis</code></td>
+                <td class="name"><code>edge</code></td>
             
 
             <td class="type">
@@ -736,25 +736,7 @@
 
             
 
-            <td class="description last">column name from file used as horizontal axis</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>y_axis</code></td>
-            
-
-            <td class="type">
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">column name from file used as vertical axis</td>
+            <td class="description last">edge used to check available attributes</td>
         </tr>
 
     
@@ -795,7 +777,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line117">line 117</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line108">line 108</a>
     </li></ul></dd>
     
 
@@ -961,7 +943,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line33">line 33</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line35">line 35</a>
     </li></ul></dd>
     
 
@@ -984,6 +966,164 @@
 
 
 
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="prepareJsonData"><span class="type-signature"></span>prepareJsonData<span class="signature">(key, data)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Extracts relevant data of a json-array with the same attributes in each array-element
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>key</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The key of the data, that is extracted (e.g. LONGITUDE, LATITUDE, ...)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The input data</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line144">line 144</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    the extracted data
+</div>
+
+
+
+    
 
 
 
@@ -1091,7 +1231,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line233">line 233</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line291">line 291</a>
     </li></ul></dd>
     
 
@@ -1177,7 +1317,155 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line106">line 106</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line237">line 237</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="switchFilterIdx"><span class="type-signature"></span>switchFilterIdx<span class="signature">(filterIdx, newIdx)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    switches the filter idx, that are used to map to the node ids and their positions
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>filterIdx</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the old filterIdx</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>newIdx</code></td>
+            
+
+            <td class="type">
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the new filterIdx</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line455">line 455</a>
     </li></ul></dd>
     
 
@@ -1307,7 +1595,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line91">line 91</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line222">line 222</a>
     </li></ul></dd>
     
 
@@ -1437,7 +1725,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line271">line 271</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line332">line 332</a>
     </li></ul></dd>
     
 
@@ -1603,7 +1891,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line253">line 253</a>
+        <a href="jdosa_overView.js.html">jdosa_overView.js</a>, <a href="jdosa_overView.js.html#line311">line 311</a>
     </li></ul></dd>
     
 
@@ -1653,7 +1941,7 @@
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Jun 15 2018 21:04:29 GMT+0200 (Mitteleuropäische Sommerzeit)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Jun 15 2018 22:56:48 GMT+0200 (Mitteleuropäische Sommerzeit)
 </footer>
 
 <script> prettyPrint(); </script>
