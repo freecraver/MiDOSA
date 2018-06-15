@@ -125,3 +125,14 @@ a:hover .tooltiptext {
     width: auto;
     margin-right: 10px;
 }
+
+#selection-panel{
+    height: 180px;
+    overflow-y: scroll;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+@-moz-document url-prefix() { #selection-panel { overflow: hidden; } }
