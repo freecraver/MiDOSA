@@ -1,6 +1,6 @@
 #detail_graph_container{
 	min-width: 100px;
-	min-height: 400px;
+	min-height: 500px;
 	width: 100%;
 	height: 100%;
 	border: 1px dashed #f7f7f7;
@@ -15,9 +15,13 @@
 	font-size: 10px;
 }
 
+#overview_panel{
+    height:100% !important;
+}
+
 #overview_graph_container{
     min-width: 100px;
-    min-height: 400px;
+    min-height: 500px;
     width: 100%;
     height: 100%;
     border: 1px dashed #f7f7f7;

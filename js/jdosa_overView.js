@@ -12,7 +12,6 @@ class OverView {
     constructor() {
         this.selectionCanvas = undefined;
         this.sigInst = undefined;
-        this.groupedNodeArr = [];
         this.idxNodeMap = [];
         this.cnt = 0;
         this.min_val = 0;
@@ -51,7 +50,7 @@ class OverView {
                 minEdgeSize: 1,
                 maxEdgeSize: 20,
                 minArrowSize: 4,
-                zoomMin: 0.1,
+                zoomMin: 0.01,
                 autoRescale: true,
                 hideEdgesOnMove: false,
                 edgesPowRatio: 1,
@@ -59,7 +58,7 @@ class OverView {
 
             }
         });
-        CustomShapes.init(this.sigInst);
+        //CustomShapes.init(this.sigInst);
         // hide/show detail view on collapse click (fix for sigma.js)
         $("#" + panel_id + " .collapse-link").click(function(){ $("#" + container_id).toggle();});
 
@@ -114,7 +113,7 @@ class OverView {
         _self.x_axis = x_axis;
         _self.y_axis = y_axis;
 
-        let $SIGMA_SCENE = $("#overview_graph_container");
+        let $SIGMA_SCENE = $("#overview_graph_container .sigma-scene");
 
         // create new selection canvas
         let copyCanvas = document.createElement("canvas");
@@ -125,11 +124,34 @@ class OverView {
 
         _self.selectionCanvas = new fabric.Canvas("overview_canvas");
         //set background to transparent to allow rendering of other layers
-        _self.selectionCanvas.setBackgroundColor('rgba(1, 73, 64, 0.6)');
+        _self.selectionCanvas.setBackgroundColor(null);
 
+        $("#overview_graph_container .canvas-container").on('mousewheel DOMMouseScroll', function (event) {
+            wheelHandler(event, _self.sigInst, _self.selectionCanvas);
+        });
+
+        _self.selectionCanvas.on('mouse:down', function(opt) {
+            var evt = opt.e;
+                this.isDragging = true;
+                this.selection = false;
+                this.lastPosX = evt.clientX;
+                this.lastPosY = evt.clientY;
+                downHandler(evt, _self.sigInst);
+        });
+        _self.selectionCanvas.on('mouse:move', function(opt) {
+            if (this.isDragging) {
+                // panning of whole canvas
+                var e = opt.e;
+                this.viewportTransform[4] += e.clientX - this.lastPosX;
+                this.viewportTransform[5] += e.clientY - this.lastPosY;
+                this.requestRenderAll();
+                this.lastPosX = e.clientX;
+                this.lastPosY = e.clientY;
+                moveHandler(e, _self.sigInst);
+            }
+        });
         _self.selectionCanvas.on('mouse:up', function(opt) {
             this.isDragging = false;
-            this.selection = true;
             upHandler(opt.e, _self.sigInst);
         });
 
@@ -158,7 +180,14 @@ class OverView {
      * @param idx the filter index (mapping index)
      */
     getNodeId(idx) {
-        return this.idxNodeMap[idx];
+        return this.idxNodeMap[idx].id;
+    }
+    /**
+     * Returns the node id behind the mapping index
+     * @param idx the filter index (mapping index)
+     */
+    getNodePosition(idx) {
+        return this.idxNodeMap[idx].pos;
     }
 
     /**
@@ -182,7 +211,7 @@ class OverView {
         node.color = groupedNode.markingColor;
         node.edges = groupedNode.edges;
         
-        _self.idxNodeMap.push(id);
+        _self.idxNodeMap.push({'id': id, 'pos':_self.sigInst.graph.edges().length});
         _self.sigInst.graph.addNode(node);
         //_self.updateEdges(node);
         _self.sigInst.refresh();
@@ -195,7 +224,14 @@ class OverView {
      */
     removeNode(idx) {
         let _self = this;
+        let nodepos = _self.getNodePosition(idx);
+        for (var i = 0; i < _self.idxNodeMap.length; i++) {
+            if (_self.idxNodeMap[i].pos >= nodepos) {
+                _self.idxNodeMap[i].pos = _self.idxNodeMap[i].pos-1;
+            }
+        }
         _self.sigInst.graph.dropNode(_self.getNodeId(idx));
+
         _self.idxNodeMap.splice(idx, 1);
         _self.sigInst.refresh();
     }
@@ -328,7 +364,7 @@ class OverView {
     updateColor(idx, color) {
         console.log("update Color");
         let _self = this;
-        var node = _self.sigInst.graph.nodes()[idx];
+        var node = _self.sigInst.graph.nodes()[_self.getNodePosition(idx)];
         node.color = color;
 
         _self.sigInst.graph.edges().forEach(function(edge) {
@@ -337,6 +373,12 @@ class OverView {
             }
         });
         _self.sigInst.refresh();
+    }
+
+    switchFilterIdx(filterIdx,newIdx) {
+        let oldval = this.idxNodeMap[filterIdx];
+        this.idxNodeMap[filterIdx] = this.idxNodeMap[newIdx];
+        this.idxNodeMap[newIdx] = oldval;
     }
 
     /**

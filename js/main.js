@@ -41,8 +41,6 @@ $(function() {
         dtView.readEdges(EDGES_FILE, $("#detail_progress"), EDGE_ID_COL, SOURCE_NODE_COL, TARGET_NODE_COL);
     };
 
-    //ovView.initOverviewSelectionCanvas();
-
     dtView = new DetailView();
     dtView.initSigma('detail_graph_container', 'detail_panel', USE_WEB_GL);
     dtView.readNodes(NODES_FILE, NODE_ID_COL, X_AXIS, Y_AXIS, callback_node_load_complete);
