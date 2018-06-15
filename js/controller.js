@@ -169,6 +169,7 @@
             let _self = this;
             _self.edges = edges;
             _self.loadEdgeNav(edges);
+            _self.overView.initHistAttrSwitcher(edges[0]);
             _self.edgeDict = {};
 
             edges.forEach(function(edge) {

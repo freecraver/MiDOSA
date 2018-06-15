@@ -1985,7 +1985,8 @@ if (typeof NProgress != 'undefined') {
 	   
 		
 		function init_charts() {
-			
+		}
+		/*	
 				console.log('run_charts  typeof [' + typeof (Chart) + ']');
 			
 				if( typeof (Chart) === 'undefined'){ return; }
@@ -1994,7 +1995,7 @@ if (typeof NProgress != 'undefined') {
 			
 				
 				Chart.defaults.global.legend = {
-					enabled: false
+					enabled: true
 				};
 				
 				
@@ -2385,7 +2386,7 @@ if (typeof NProgress != 'undefined') {
 				});
 			
 			}
-		}
+		}*/
 
 		/* COMPOSE */
 		

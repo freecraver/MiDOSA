@@ -56,9 +56,14 @@
         return parseInt(5 * v + 1);
     }
 
-    var calculateHeightRatio = function(bins, histogramHeight) {
+    var calculateHeightRatio = function(bins, histogramHeight, name) {
         if (bins[40] === NaN)
             bins[40] = 0;
+
+        var patt = new RegExp("DELAY");
+        if (patt.test(name))
+            return 0.5;
+
         var maxValue = Math.max.apply(null, bins);
         var height = convertToHeight(maxValue);
 
@@ -116,7 +121,7 @@
 
             self.element.html(wrapHtml);
 
-            var heightRatio = calculateHeightRatio(bins, self.options.height),
+            var heightRatio = calculateHeightRatio(bins, self.options.height, self.options.name),
                 widthPerBin = 100 / this.options.numberOfBins;
 
             for (i = 0; i < bins.length; i++) {
