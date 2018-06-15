@@ -208,6 +208,7 @@
             // update filter panel
             this.filterPanel.switchFilterPanels(filterIdx, newIdx);
             // update detail view
+            this.detailView.switchFilterRectangles(filterIdx, newIdx);
             this.recalcBoxes();
 
             return newIdx;
