@@ -33,7 +33,7 @@ $(function() {
 
     let callback_node_load_complete = function() {
         ovView = new OverView();
-        ovView.initSigma('overview_graph_container', 'overview_panel', USE_WEB_GL);
+        ovView.initSigma('overview_graph_container', 'overview_panel', false);
         ovView.initOverviewSelectionCanvas(X_AXIS, Y_AXIS);
     
         controller = new Controller(dtView, ovView);

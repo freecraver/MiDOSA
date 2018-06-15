@@ -13,10 +13,14 @@ class OverView {
         this.selectionCanvas = undefined;
         this.sigInst = undefined;
         this.groupedNodeArr = [];
+        this.idxNodeMap = [];
+        this.cnt = 0;
         this.min_val = 0;
         this.max_val = 500;
         this.x_axis = undefined;
         this.y_axis = undefined;
+        this.activateEdgeLabels = false;
+        this.nodeSuffix = '_node';
     }
     
     /**
@@ -45,11 +49,14 @@ class OverView {
                 minNodeSize: 40,
                 maxNodeSize: 40,
                 minEdgeSize: 1,
-                maxEdgeSize: 40,
+                maxEdgeSize: 20,
                 minArrowSize: 4,
                 zoomMin: 0.1,
                 autoRescale: true,
-                hideEdgesOnMove: true
+                hideEdgesOnMove: false,
+                edgesPowRatio: 1,
+                edgeLabelSize: 'proportional',
+
             }
         });
         CustomShapes.init(this.sigInst);
@@ -59,13 +66,29 @@ class OverView {
         // hide/show unmapped edges on eye click
         $("#" + panel_id + " .edge_toggle").click(function() {
             $("#" + panel_id + " .edge_toggle > i").toggleClass('fa-eye fa-eye-slash');
-            _self.showAllEdges = ! _self.showAllEdges;
-            controller.recalcBoxes();
+            _self.activateEdgeLabels = !_self.activateEdgeLabels;
+            _self.toggleEdgeLabels(_self.activateEdgeLabels);
+            _self.sigInst.refresh();
         });
 
         // key binder
         $(document).keydown(function(e) {
             e.preventDefault(); // prevent the default action (scroll / move caret)
+        });
+    }
+
+    /**
+     * Toggles the edge labels
+     * @param flag indicates if edge labels shall be drawn.
+     */
+    toggleEdgeLabels(flag) {
+        let _self = this;
+        _self.sigInst.graph.edges().forEach(function(edge) {
+            if (flag) {
+                edge.label = edge.hlabel;
+            } else {
+                edge.label = '';
+            }
         });
     }
 
@@ -131,6 +154,14 @@ class OverView {
     }
 
     /**
+     * Returns the node id behind the mapping index
+     * @param idx the filter index (mapping index)
+     */
+    getNodeId(idx) {
+        return this.idxNodeMap[idx];
+    }
+
+    /**
      * Adds a groupedNode to the canvas, which consists of nodes and edges
      * that are aggregated in a single node. Edges are not considered when
      * then node is initially added.
@@ -138,20 +169,20 @@ class OverView {
      */
     addNode(groupedNode) {        
         let _self = this;
+        let i = this.cnt++;
+        let id = i+_self.nodeSuffix;
+        
 
         let node = new Object();
-        node.id = groupedNode.id+'_ovNode';
-        node.n = groupedNode.id;
-
-        _self.groupedNodeArr.push(node);
-
+        node.id = id;
 
         node = _self.calculateNodePosition(node);
         node.size = _self.sigInst.settings("minNodeSize");
         node.type = 'square';
         node.color = groupedNode.markingColor;
-        node.edges=groupedNode.edges;
+        node.edges = groupedNode.edges;
         
+        _self.idxNodeMap.push(id);
         _self.sigInst.graph.addNode(node);
         //_self.updateEdges(node);
         _self.sigInst.refresh();
@@ -160,19 +191,18 @@ class OverView {
 
     /**
      * Removes a node from the canvas.
-     * @param id the id of the node.
+     * @param idx the idx of the detailView filter
      */
-    removeNode(id) {
+    removeNode(idx) {
         let _self = this;
-
-        //_self.groupedNodeArr.splice(idx, 1);
-        _self.sigInst.graph.dropNode(id+'_ovNode');
+        _self.sigInst.graph.dropNode(_self.getNodeId(idx));
+        _self.idxNodeMap.splice(idx, 1);
         _self.sigInst.refresh();
     }
 
     /**
      * Updates the inner edges and nodes of an overview node.
-     * @param idx the idx of the filter
+     * @param idx the idx of the detailView-filter
      * @param the inner nodes
      * @param the outer nodes
      */
@@ -181,7 +211,7 @@ class OverView {
         var i;
         for (i=0; i<_self.sigInst.graph.nodes().length;i++) {
             var node = _self.sigInst.graph.nodes()[i];
-            if (node.id === (idx+'_ovNode')) {
+            if (node.id === _self.getNodeId(idx)) {
                 node.nodes = nodes;
                 node.edges = edges;
                 _self.updateEdges(node);
@@ -196,7 +226,7 @@ class OverView {
      */
     updateEdges(newNode) {
         let _self = this;
-        if (_self.groupedNodeArr.length>=1) {
+        if (_self.idxNodeMap.length>=1) {
             _self.sigInst.graph.nodes().forEach(function(outerNode) {
                 var newedge = new Object();
                 newedge.id = outerNode.id+newNode.id;
@@ -216,17 +246,22 @@ class OverView {
                 }
                 
                 newedge.size = 0;
-
-                //outerNode.nodes.forEach(function(n1) {
+                if (newNode.nodes!== undefined) {
                     newNode.nodes.forEach(function(n2) {
                         outerNode.edges.forEach(function(e) {
                             if (e.target===n2.id)
                                 newedge.size = newedge.size+1;
                         });
                     });
-                //});
+                }
                 var countedsize = newedge.size;
+                
+                newedge.hlabel = ''+countedsize; 
+                if (_self.activateEdgeLabels) {
+                    newedge.label = newedge.hlabel;
+                }
 
+                newedge.type = 'curvedArrow';
                 newedge.size=(newedge.size/100)+1;
                 if (update==false){
                     _self.sigInst.graph.addEdge(newedge);
@@ -255,18 +290,26 @@ class OverView {
                     }
                 }
 
-
                 newedge.size = 0;
 
-                newNode.nodes.forEach(function(n2) {
-                    outerNode.edges.forEach(function(e) {
-                        if (e.source===n2.id)
-                            newedge.size = newedge.size+1;
+                if (outerNode.nodes!== undefined) {
+                    outerNode.nodes.forEach(function(n2) {
+                        newNode.edges.forEach(function(e) {
+                            if (e.target===n2.id)
+                                newedge.size = newedge.size+1;
+                        });
                     });
-                });
-                var countedsize = newedge.size;
-                newedge.size=(newedge.size/100)+1;
+                }
 
+                var countedsize = newedge.size;
+
+                newedge.hlabel = ''+countedsize; 
+                if (_self.activateEdgeLabels) {
+                    newedge.label = newedge.hlabel;
+                }
+
+                newedge.size=(newedge.size/100)+1;
+                newedge.type = 'curvedArrow';
                 if (update==false){
                     _self.sigInst.graph.addEdge(newedge);
                 }
@@ -282,8 +325,23 @@ class OverView {
         _self.sigInst.refresh();
     }
 
+    updateColor(idx, color) {
+        console.log("update Color");
+        let _self = this;
+        var node = _self.sigInst.graph.nodes()[idx];
+        node.color = color;
+
+        _self.sigInst.graph.edges().forEach(function(edge) {
+            if (edge.source===node.id) {
+                edge.color = color;
+            }
+        });
+        _self.sigInst.refresh();
+    }
+
     /**
      * calculates a simple node positions for the sigma nodes
+     * the node is not yet pushed to graph.nodes() or the mapping array
      * @param node The node the positioning is set for
      * @returns the node with calculated .x and .y
      */
@@ -291,25 +349,28 @@ class OverView {
         let _self = this;
         
         var nodeDistance = _self.sigInst.settings("minNodeSize");
-        if (_self.groupedNodeArr.length==1) {
+        if (_self.idxNodeMap.length==0) {
             node.x = (_self.max_val/2);// - nodeDistance;
             node.y = (_self.max_val/2);// - nodeDistance;
             return node;
         }
         
-        if (_self.groupedNodeArr.length%2 == 0) {
-            var prevnode = _self.groupedNodeArr[_self.groupedNodeArr.length-2];
-            var sigmanode = _self.sigInst.graph.nodes()[_self.groupedNodeArr.length-2];
+        if (_self.cnt%2 == 0) {
+            //var prevnode = _self.groupedNodeArr[_self.idxNodeMap.length-2];
+            var sigmanode = _self.sigInst.graph.nodes()[_self.idxNodeMap.length-1];
             sigmanode.x = (_self.max_val/2) - nodeDistance; 
 
-            node.x = (prevnode.x) + nodeDistance*2;
-            node.y = prevnode.y;
+            node.x = (sigmanode.x) + nodeDistance*2;
+            node.y = sigmanode.y;
             return node;
         } else {
-            var prevnode = _self.groupedNodeArr[_self.groupedNodeArr.length-3];
+            //var prevnode = _self.groupedNodeArr[_self.groupedNodeArr.length-3];
+            var i = Math.max(_self.sigInst.graph.nodes().length-2,0);
+            console.log("i: "+i);
+            var sigmanode = _self.sigInst.graph.nodes()[i];
 
             node.x = (_self.max_val/2);
-            node.y = prevnode.y+nodeDistance*2;
+            node.y = sigmanode.y+nodeDistance*2;
             return node;
         }
     }

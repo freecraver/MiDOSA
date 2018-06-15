@@ -219,9 +219,6 @@
          * @param filter filter to be added
          */
         addFilter(filter){
-            console.log("addFilter");
-            console.log(filter);
-
             this.filterArr.push(filter);
             this.filterPanel.addFilter(this.filterArr.length - 1, this.filterArr[this.filterArr.length-1].markingColor);
             this.recalcBoxes();
@@ -269,9 +266,10 @@
          */
         updateFilterColor(idx, color) {
             this.filterArr[idx].markingColor = color;
-
+            this.overView.updateColor(idx, color);
             this.recalcBoxes();
             this.detailView.setSelectionColor(idx, color);
+
         }
 
         /**
