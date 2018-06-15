@@ -34,6 +34,8 @@ class OverView {
         console.log("init overview sigma");
         let _self = this;
 
+        _self.initCustomRenderer();
+
         if (!use_web_gl) {
             sigma.canvas.edges.def = sigma.canvas.edges.curvedArrow;
         }
@@ -73,6 +75,12 @@ class OverView {
         // key binder
         $(document).keydown(function(e) {
             e.preventDefault(); // prevent the default action (scroll / move caret)
+        });
+    }
+
+    initCustomRenderer() {
+        sigma.utils.pkg('sigma.canvas.nodes');
+        sigma.canvas.nodes.image = (function() {
         });
     }
 
@@ -201,7 +209,6 @@ class OverView {
         let _self = this;
         let i = this.cnt++;
         let id = i+_self.nodeSuffix;
-        
 
         let node = new Object();
         node.id = id;
@@ -212,7 +219,7 @@ class OverView {
         node.color = groupedNode.markingColor;
         node.edges = groupedNode.edges;
         
-        _self.idxNodeMap.push({'id': id, 'pos':_self.sigInst.graph.edges().length});
+        _self.idxNodeMap.push({'id': id, 'pos':_self.sigInst.graph.nodes().length});
         _self.sigInst.graph.addNode(node);
         //_self.updateEdges(node);
         _self.sigInst.refresh();
@@ -363,8 +370,8 @@ class OverView {
     }
 
     updateColor(idx, color) {
-        console.log("update Color");
         let _self = this;
+        
         var node = _self.sigInst.graph.nodes()[_self.getNodePosition(idx)];
         node.color = color;
 
