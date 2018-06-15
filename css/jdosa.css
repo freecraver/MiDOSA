@@ -131,6 +131,17 @@ a:hover .tooltiptext {
     overflow-y: scroll;
 }
 
+.sidebar-footer h3 {
+    padding-left: 15px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    font-weight: 700;
+    font-size: 11px;
+    margin-top: 0;
+    text-shadow: 1px 1px #000;
+}
+
 ::-webkit-scrollbar {
     display: none;
 }
