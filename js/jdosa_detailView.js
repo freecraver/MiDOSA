@@ -450,7 +450,7 @@ class DetailView {
 
         // color all matched nodes
         for (let i = 0; i< boxResult.mapped.length; i++) {
-            let curColor = colorArr[i];
+            let curColor = controller.filterArr[i].markingColor;
             boxResult.mapped[i].forEach(function(node) {
                 node.color = curColor;
             });
@@ -481,7 +481,7 @@ class DetailView {
 
         // color all matched nodes
         for (let i = 0; i< boxResult.mapped.length; i++) {
-            let curColor = colorArr[i];
+            let curColor = controller.filterArr[i].markingColor;
             boxResult.mapped[i].forEach(function(edge) {
                 edge.hidden = false;
                 edge.color = curColor;
@@ -541,6 +541,18 @@ class DetailView {
         recToChange.dirty = true;
 
         this.selectionCanvas.renderAll();
+    }
+
+    /**
+     * switches filter order for the supplied two indices
+     * order of supplied filters is irrelevant
+     * @param filterIdx1 index of a filter
+     * @param filterIdx2 index of a filter
+     */
+    switchFilterRectangles(filterIdx1, filterIdx2){
+        let tempRec = this.selectionBoxArr[filterIdx1];
+        this.selectionBoxArr[filterIdx1] = this.selectionBoxArr[filterIdx2];
+        this.selectionBoxArr[filterIdx2] = tempRec;
     }
 
     /**
