@@ -155,6 +155,7 @@ class OverView {
             upHandler(opt.e, _self.sigInst);
         });
 
+
         $("#overview_graph_container .canvas-container").on('click', function (event) {
             clickHandler(event, _self.sigInst);
         });
